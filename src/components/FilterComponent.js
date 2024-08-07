@@ -85,7 +85,7 @@ const FilterComponent = ({
                     endAdornment: <SearchIcon />,
                 }}
                 sx={{
-                    width: '50%',
+                    flexGrow: 1,
                     boxShadow: '10px 10px 100px 0px rgba(16, 28, 45, 0.08)',
                 }}
             />
