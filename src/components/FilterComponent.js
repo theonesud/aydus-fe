@@ -20,6 +20,8 @@ import Modal from '@mui/material/Modal';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { VerticalAlignCenter } from '@mui/icons-material';
+import { VerticalAlignTop } from '@mui/icons-material';
 
 const FilterComponent = ({
     onFilterChange,
@@ -72,6 +74,28 @@ const FilterComponent = ({
 
     const handleChange = (prop) => (event) => {
         setNewCondition({ ...newCondition, [prop]: event.target.value });
+    };
+
+    const commonTypographyStyles = {
+        padding: 1,
+        cursor: 'pointer',
+        borderRadius: 2,
+        marginBottom: 2,
+        marginRight: 3,
+    };
+
+    const selectedStyles = {
+        backgroundColor: '#f0f0f0',
+        color: '#1B39CA',
+    };
+
+    const appliedBadgeStyles = {
+        background: 'white',
+        fontSize: '12px',
+        padding: '2px 4px',
+        borderRadius: 10,
+        color: 'black',
+        marginLeft: 8,
     };
 
     return (
@@ -152,6 +176,7 @@ const FilterComponent = ({
                         bgcolor: 'background.paper',
                         boxShadow: 24,
                         p: 4,
+                        py: 7,
                         borderRadius: 1,
                         display: 'flex',
                     }}
@@ -180,69 +205,35 @@ const FilterComponent = ({
                         <Typography
                             variant="h6"
                             onClick={() => handleOptionSelect('metrics')}
+                            className={`font-sans `}
                             sx={{
-                                padding: 1,
-                                cursor: 'pointer',
-                                borderRadius: 2,
-                                marginBottom: 3,
-                                marginRight: 1,
-                                backgroundColor:
-                                    selectedOption === 'metrics'
-                                        ? '#C7C7C7'
-                                        : 'inherit',
-                                color:
-                                    selectedOption === 'metrics'
-                                        ? '#1B39CA'
-                                        : 'inherit',
+                                ...commonTypographyStyles,
+                                ...(selectedOption === 'metrics'
+                                    ? selectedStyles
+                                    : {}),
                             }}
                         >
-                            Metrics{' '}
+                            Metrics
                             {isMetApplied && (
-                                <span
-                                    style={{
-                                        background: 'white',
-                                        fontSize: '12px',
-                                        padding: '2px 4px',
-                                        borderRadius: 10,
-                                        color: 'black',
-                                    }}
-                                >
-                                    Applied
-                                </span>
+                                <span style={appliedBadgeStyles}>Applied</span>
                             )}
                         </Typography>
 
                         <Typography
                             variant="h6"
                             onClick={() => handleOptionSelect('attributes')}
+                            className={`font-sans `}
                             sx={{
-                                padding: 1,
-                                cursor: 'pointer',
-                                borderRadius: 2,
-                                marginRight: 1,
-                                backgroundColor:
-                                    selectedOption === 'attributes'
-                                        ? '#C7C7C7'
-                                        : 'inherit',
-                                color:
-                                    selectedOption === 'attributes'
-                                        ? '#1B39CA'
-                                        : 'inherit',
+                                ...commonTypographyStyles,
+                                ...(selectedOption === 'attributes'
+                                    ? selectedStyles
+                                    : {}),
+                                marginBottom: 0, // To remove margin-bottom from the last item
                             }}
                         >
                             Attributes
                             {isAtrApplied && (
-                                <span
-                                    style={{
-                                        background: 'white',
-                                        fontSize: '12px',
-                                        padding: '2px 4px',
-                                        borderRadius: 10,
-                                        color: 'black',
-                                    }}
-                                >
-                                    Applied
-                                </span>
+                                <span style={appliedBadgeStyles}>Applied</span>
                             )}
                         </Typography>
                     </Box>
@@ -251,17 +242,17 @@ const FilterComponent = ({
                     <Box sx={{ flexGrow: 1, p: 2 }}>
                         {selectedOption === 'metrics' && (
                             <div>
-                                <Typography>
-                                    Select your product metrics here.
+                                <Typography variant="h5">
+                                    Add a metric filter
                                 </Typography>
                                 <div
                                     style={{
-                                        fontSize: '12px',
+                                        fontSize: '14px',
                                         marginBottom: 16,
                                     }}
                                 >
-                                    Add new filters for your metrics to get more
-                                    detailed insights.
+                                    Common metrics include: Spend, Revenue,
+                                    Clicks, CTR
                                 </div>
                                 {selectedMetrics ? (
                                     <div>
@@ -437,62 +428,234 @@ const FilterComponent = ({
                                         onClick={handleMetricOpen}
                                         sx={{
                                             backgroundColor: 'white',
-                                            color: 'black',
+                                            color: 'gray.900',
                                             border: '1px solid #e0e0e0',
-                                            fontSize: '12px',
+                                            fontSize: '0.875rem', // Equivalent to text-sm in Tailwind CSS
+                                            fontWeight: 600, // Equivalent to font-semibold
                                             boxShadow:
-                                                '10px 10px 100px 0px rgba(16, 28, 45, 0.08)',
+                                                '0 1px 2px rgba(0, 0, 0, 0.05)', // Equivalent to shadow-sm
+                                            paddingX: '0.875rem', // Equivalent to px-3.5 in Tailwind CSS
+                                            paddingY: '0.625rem', // Equivalent to py-2.5 in Tailwind CSS
+                                            borderRadius: '0.375rem', // Equivalent to rounded-md
                                             '&:hover': {
-                                                backgroundColor: '#f5f5f5',
+                                                backgroundColor: '#f5f5f5', // Equivalent to hover:bg-gray-50
                                             },
-                                            width: '130px',
+                                            width: 'auto',
                                             height: '40px',
+                                            ring: '1px solid #e0e0e0', // Equivalent to ring-1 ring-inset ring-gray-300
                                         }}
                                     >
-                                        + Add Metrics
+                                        + Add Metric Filter
                                     </Button>
                                 )}
                             </div>
                         )}
                         {selectedOption === 'attributes' && (
                             <div>
-                                <Typography>
-                                    select your products attributes
+                                <Typography variant="h5">
+                                    Add an attribute filter
                                 </Typography>
                                 <div
                                     style={{
-                                        fontSize: '12px',
+                                        fontSize: '14px',
                                         marginBottom: 16,
                                     }}
                                 >
-                                    Add new filters for your dimensions to
-                                    refine your data analysis.
+                                    Common attributes include: SKU id, MRP,
+                                    Price
                                 </div>
-                                {selectedAttributes ? (
+                                {selectedMetrics ? (
                                     <div>
-                                        <Typography>
-                                            Attributes Filters
-                                        </Typography>
+                                        <Box
+                                            sx={{
+                                                position: 'relative',
+                                                width: '100%',
+                                                bgcolor: 'background.paper',
+                                                boxShadow: 2,
+                                                p: 4,
+                                                borderRadius: 2,
+                                            }}
+                                        >
+                                            <IconButton
+                                                onClick={() => {
+                                                    setSelectedMetrics(false);
+                                                    setIsMetApplied(false);
+                                                }}
+                                                sx={{
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    right: 0,
+                                                }}
+                                            >
+                                                <CloseIcon />
+                                            </IconButton>
+                                            {/* {conditions.map((condition, index) => (
+                                                <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                                                    <Typography>{condition.con}{condition.field} {condition.operator} {condition.value}</Typography>
+                                                    <IconButton onClick={() => deleteCondition(index)}><DeleteIcon /></IconButton>
+                                                </Box>
+                                            ))} */}
+                                            <div sx={{ mb: 2 }}>
+                                                Add Condition
+                                            </div>
+                                            <Box
+                                                sx={{
+                                                    display: 'flex',
+                                                    gap: 2,
+                                                    mb: 2,
+                                                }}
+                                            >
+                                                {conditions.length > 0 && (
+                                                    <FormControl fullWidth>
+                                                        <InputLabel>
+                                                            Select Field
+                                                        </InputLabel>
+                                                        <Select
+                                                            value={
+                                                                newCondition.con
+                                                            }
+                                                            label="Select"
+                                                            onChange={handleChange(
+                                                                'con'
+                                                            )}
+                                                        >
+                                                            <MenuItem value="AND">
+                                                                AND
+                                                            </MenuItem>
+                                                            <MenuItem value="OR">
+                                                                OR
+                                                            </MenuItem>
+                                                        </Select>
+                                                    </FormControl>
+                                                )}
+                                                <FormControl fullWidth>
+                                                    <InputLabel>
+                                                        Select Field
+                                                    </InputLabel>
+                                                    <Select
+                                                        value={
+                                                            newCondition.field
+                                                        }
+                                                        label="Select Field"
+                                                        onChange={handleChange(
+                                                            'field'
+                                                        )}
+                                                    >
+                                                        <MenuItem value="field1">
+                                                            Field 1
+                                                        </MenuItem>
+                                                        <MenuItem value="field2">
+                                                            Field 2
+                                                        </MenuItem>
+                                                    </Select>
+                                                </FormControl>
+                                                <FormControl fullWidth>
+                                                    <InputLabel>
+                                                        Select Operator
+                                                    </InputLabel>
+                                                    <Select
+                                                        value={
+                                                            newCondition.operator
+                                                        }
+                                                        label="Select Operator"
+                                                        onChange={handleChange(
+                                                            'operator'
+                                                        )}
+                                                    >
+                                                        <MenuItem value="equals">
+                                                            Equals
+                                                        </MenuItem>
+                                                        <MenuItem value="contains">
+                                                            Contains
+                                                        </MenuItem>
+                                                    </Select>
+                                                </FormControl>
+                                                <TextField
+                                                    fullWidth
+                                                    label="Enter Value"
+                                                    value={newCondition.value}
+                                                    onChange={handleChange(
+                                                        'value'
+                                                    )}
+                                                />
+                                            </Box>
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'flex-end',
+                                                    alignItems: 'center',
+                                                }}
+                                            >
+                                                <Button
+                                                    variant="contained"
+                                                    startIcon={<AddIcon />}
+                                                    onClick={addCondition}
+                                                >
+                                                    Add Condition
+                                                </Button>
+                                            </div>
+                                        </Box>
+                                        <Stack
+                                            direction="row"
+                                            spacing={1}
+                                            sx={{ mb: 2, mt: 4 }}
+                                        >
+                                            {conditions.map(
+                                                (condition, index) => (
+                                                    <React.Fragment key={index}>
+                                                        {index > 0 && (
+                                                            <Chip
+                                                                label={`${condition.con}`}
+                                                                color="primary"
+                                                                variant="outlined"
+                                                                sx={{
+                                                                    fontSize: 14,
+                                                                }}
+                                                            />
+                                                        )}
+
+                                                        <Chip
+                                                            label={`${condition.field} ${condition.operator} ${condition.value}`}
+                                                            onDelete={() =>
+                                                                deleteCondition(
+                                                                    index
+                                                                )
+                                                            }
+                                                            color="primary"
+                                                            variant="outlined"
+                                                            sx={{
+                                                                fontSize: 14,
+                                                            }}
+                                                        />
+                                                    </React.Fragment>
+                                                )
+                                            )}
+                                        </Stack>
                                     </div>
                                 ) : (
                                     <Button
                                         variant="outlined"
-                                        onClick={handleAtrOpen}
+                                        onClick={handleMetricOpen}
                                         sx={{
                                             backgroundColor: 'white',
-                                            color: 'black',
+                                            color: 'gray.900',
                                             border: '1px solid #e0e0e0',
-                                            fontSize: '12px',
+                                            fontSize: '0.875rem', // Equivalent to text-sm in Tailwind CSS
+                                            fontWeight: 600, // Equivalent to font-semibold
                                             boxShadow:
-                                                '10px 10px 100px 0px rgba(16, 28, 45, 0.08)',
+                                                '0 1px 2px rgba(0, 0, 0, 0.05)', // Equivalent to shadow-sm
+                                            paddingX: '0.875rem', // Equivalent to px-3.5 in Tailwind CSS
+                                            paddingY: '0.625rem', // Equivalent to py-2.5 in Tailwind CSS
+                                            borderRadius: '0.375rem', // Equivalent to rounded-md
                                             '&:hover': {
-                                                backgroundColor: '#f5f5f5',
+                                                backgroundColor: '#f5f5f5', // Equivalent to hover:bg-gray-50
                                             },
-                                            width: '130px',
+                                            width: 'auto',
                                             height: '40px',
+                                            ring: '1px solid #e0e0e0', // Equivalent to ring-1 ring-inset ring-gray-300
                                         }}
                                     >
-                                        + Add Dimension
+                                        + Add Attribute Filter
                                     </Button>
                                 )}
                             </div>

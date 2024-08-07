@@ -65,12 +65,12 @@ const ProductAnalyticsPage = () => {
                             padding: 10,
                         }}
                     >
-                        Product Analytics
+                        Product Insights
                     </h1>
                 </div> */}
 
                 <h1 className="text-3xl font-semibold leading-16 text-gray-900 pb-10 pt-16">
-                    Product Analytics
+                    Product Insights
                 </h1>
                 <FilterComponent
                     onFilterChange={(event) =>

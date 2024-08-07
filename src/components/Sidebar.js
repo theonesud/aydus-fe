@@ -24,7 +24,7 @@ import { useRouter } from 'next/navigation';
 const navigation = [
     { name: 'Dashboard', href: '/', icon: HomeIcon },
     {
-        name: 'Product Analytics',
+        name: 'Product Insights',
         href: '/productAnalytics',
         icon: PresentationChartBarIcon,
     }, // New section

@@ -72,7 +72,7 @@ const AnalyticsTable = ({ data }) => {
             <TableContainer
                 sx={{ maxHeight: 600, overflowX: 'auto', paddingX: 1 }}
             >
-                <Table stickyHeader aria-label="product analytics table">
+                <Table stickyHeader aria-label="product insights table">
                     <TableHead>
                         <TableRow>
                             <TableCell
