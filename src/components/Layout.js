@@ -6,10 +6,12 @@ export default function Layout({ children }) {
         <div className="flex h-screen overflow-hidden">
             {/* Sidebar component */}
             {/* <Navbar/> */}
-            <Sidebar />
+            <div className="w-64">
+                <Sidebar />
+            </div>
 
             {/* Main content area where children components are rendered */}
-            <div className="flex flex-1 flex-col overflow-y-auto">
+            <div className="flex flex-1 flex-col overflow-y-auto px-16">
                 {children}
             </div>
         </div>
