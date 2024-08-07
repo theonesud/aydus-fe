@@ -10,23 +10,21 @@ import {
     FormControl,
     IconButton,
     Typography,
-    Divider,
+    Modal,
     Stack,
     Chip,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import Modal from '@mui/material/Modal';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { VerticalAlignCenter } from '@mui/icons-material';
-import { VerticalAlignTop } from '@mui/icons-material';
 
 const FilterComponent = ({
     onFilterChange,
     onDateRangeChange,
     dateRange,
+    onApplyConditions,
     onDownload,
 }) => {
     const [open, setOpen] = useState(false);
@@ -40,8 +38,9 @@ const FilterComponent = ({
         field: '',
         operator: '',
         value: '',
-        con: '',
+        con: 'AND', // Default conjunction
     });
+    const [editingIndex, setEditingIndex] = useState(null);
 
     const handleClickOpen = () => {
         setOpen(true);
@@ -49,15 +48,18 @@ const FilterComponent = ({
 
     const handleClose = () => {
         setOpen(false);
+        setEditingIndex(null);
     };
 
     const handleOptionSelect = (option) => {
         setSelectedOption(option);
     };
+
     const handleMetricOpen = () => {
         setSelectedMetrics(true);
         setIsMetApplied(true);
     };
+
     const handleAtrOpen = () => {
         setSelectedAttributes(true);
         setIsAtrApplied(true);
@@ -65,17 +67,36 @@ const FilterComponent = ({
 
     const addCondition = () => {
         setConditions([...conditions, newCondition]);
-        setNewCondition({ field: '', operator: '', value: '', con: '' }); // Reset the input form
+        setNewCondition({ field: '', operator: '', value: '', con: 'AND' }); // Reset with default conjunction
     };
 
     const deleteCondition = (index) => {
         setConditions(conditions.filter((_, i) => i !== index));
     };
 
-    const handleChange = (prop) => (event) => {
-        setNewCondition({ ...newCondition, [prop]: event.target.value });
+    const handleChange = (prop, index) => (event) => {
+        if (index !== undefined) {
+            // Editing existing condition
+            const updatedConditions = [...conditions];
+            updatedConditions[index][prop] = event.target.value;
+            setConditions(updatedConditions);
+        } else {
+            // Updating new condition form
+            setNewCondition({ ...newCondition, [prop]: event.target.value });
+        }
     };
 
+    const startEditingCondition = (index) => {
+        setEditingIndex(index);
+    };
+
+    const stopEditingCondition = () => {
+        setEditingIndex(null);
+    };
+    const handleApply = () => {
+        onApplyConditions(conditions); // send conditions to parent
+        handleClose();
+    };
     const commonTypographyStyles = {
         padding: 1,
         cursor: 'pointer',
@@ -97,6 +118,64 @@ const FilterComponent = ({
         color: 'black',
         marginLeft: 8,
     };
+
+    const fieldOptions = [
+        "ActiveProductCount",
+        "ActiveVariantCount",
+        "AddToCartRate",
+        "AddToCarts",
+        "AverageSellingPrice",
+        "BlendedCRRCatalogAds",
+        "BlendedCRREstSpends",
+        "BlendedROASCatalogAds",
+        "BlendedROASEstSpends",
+        "CPSCatalogSpends",
+        "CPSEstSpends",
+        "ConversionRate",
+        "DiscountedProductCount",
+        "FbCPC",
+        "FbCTR",
+        "FbClicks",
+        "FbImpressions",
+        "GABlendedCRRCatalogSpends",
+        "GABlendedCRREstSpends",
+        "GABlendedROASCatalogSpends",
+        "GABlendedROASEstSpends",
+        "GACPSCatalogSpends",
+        "GACPSEstSpends",
+        "GoogleCPC",
+        "GoogleCTR",
+        "GoogleClicks",
+        "GoogleImpressions",
+        "InStockProductCount",
+        "InStockVariantCount",
+        "OutOfStockProductCount",
+        "OutofstockVariantsCount",
+        "ProductName",
+        "ProductPageViews",
+        "ProductSku",
+        "PurchaseValue",
+        "Purchases",
+        "PurchasesPmaxAds",
+        "PurchasesValuePmaxAds",
+        "Purchases_1",
+        "ROASPmaxAds",
+        "SpendsCatalogAds",
+        "SpendsPMaxAds",
+        "TotalCatalogSpendsFB+Google",
+        "TotalProductCount",
+        "TotalRevenue",
+        "TotalSpendEstimated",
+        "TransactionRate"
+    ];
+    const operators = [
+        "Equals",
+        "Not Equals",
+        "Greater Than",
+        "Less Than",
+        "Greater Than or Equals",
+        
+    ]
 
     return (
         <Box display="flex" alignItems="center" gap={2}>
@@ -179,6 +258,8 @@ const FilterComponent = ({
                         py: 7,
                         borderRadius: 1,
                         display: 'flex',
+                        overflow: 'hidden',
+
                     }}
                 >
                     {/* Close Button */}
@@ -279,12 +360,72 @@ const FilterComponent = ({
                                             >
                                                 <CloseIcon />
                                             </IconButton>
-                                            {/* {conditions.map((condition, index) => (
-                                                    <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                                                        <Typography>{condition.con}{condition.field} {condition.operator} {condition.value}</Typography>
-                                                        <IconButton onClick={() => deleteCondition(index)}><DeleteIcon /></IconButton>
-                                                    </Box>
-                                                ))} */}
+                                            {
+                                                conditions.map((condition, index) => (
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        gap: 10,
+                                                        marginBottom: 10
+
+                                                    }}>
+                                                        <FormControl fullWidth>
+                                                            <InputLabel>
+                                                                Select Field
+                                                            </InputLabel>
+                                                            <Select
+                                                                value={condition.field}
+                                                                label="Select Field"
+                                                                onChange={handleChange(
+                                                                    'field',
+                                                                    index
+                                                                )}
+                                                            >
+                                                                {fieldOptions.map((option) => (
+                                                                    <MenuItem key={option} value={option}>
+                                                                        {option}
+                                                                    </MenuItem>
+                                                                ))}
+                                                            </Select>
+                                                        </FormControl>
+                                                        <FormControl fullWidth>
+                                                            <InputLabel>
+                                                                Select Operator
+                                                            </InputLabel>
+                                                            <Select
+                                                                value={condition.operator}
+                                                                label="Select Operator"
+                                                                onChange={handleChange(
+                                                                    'operator',
+                                                                    index
+                                                                )}
+                                                            >
+                                                               {operators.map((option) => (
+
+                                                                    <MenuItem key={option} value={option}>
+                                                                        {option}
+                                                                    </MenuItem>
+
+                                                               ))}
+                                                            </Select>
+                                                        </FormControl>
+                                                        <TextField
+                                                            fullWidth
+                                                            label="Enter Value"
+                                                            value={condition.value}
+                                                            onChange={handleChange(
+                                                                'value',
+                                                                index
+                                                            )}
+                                                        />
+                                                        <IconButton
+                                                            onClick={() => deleteCondition(index)}
+                                                        >
+                                                            <DeleteIcon />
+                                                        </IconButton>
+
+                                                    </div>
+                                                ))
+                                            }
                                             <div sx={{ mb: 2 }}>
                                                 Add Condition
                                             </div>
@@ -295,29 +436,32 @@ const FilterComponent = ({
                                                     mb: 2,
                                                 }}
                                             >
-                                                {conditions.length > 0 && (
-                                                    <FormControl fullWidth>
-                                                        <InputLabel>
-                                                            Select Field
-                                                        </InputLabel>
-                                                        <Select
-                                                            value={
-                                                                newCondition.con
-                                                            }
-                                                            label="Select"
-                                                            onChange={handleChange(
-                                                                'con'
-                                                            )}
-                                                        >
-                                                            <MenuItem value="AND">
-                                                                AND
-                                                            </MenuItem>
-                                                            <MenuItem value="OR">
-                                                                OR
-                                                            </MenuItem>
-                                                        </Select>
-                                                    </FormControl>
-                                                )}
+                                                {
+                                                    conditions.length > 0 && (
+                                                        <FormControl fullWidth>
+                                                    <InputLabel>
+                                                        Select Conjunction
+                                                    </InputLabel>
+                                                    <Select
+                                                        value={
+                                                            newCondition.con
+                                                        }
+                                                        label="Select Conjunction"
+                                                        onChange={handleChange(
+                                                            'con'
+                                                        )}
+                                                    >
+                                                        <MenuItem value="AND">
+                                                            AND
+                                                        </MenuItem>
+                                                        <MenuItem value="OR">
+                                                            OR
+                                                        </MenuItem>
+                                                    </Select>
+                                                </FormControl>
+                                                    )
+                                                }
+                                                
                                                 <FormControl fullWidth>
                                                     <InputLabel>
                                                         Select Field
@@ -331,12 +475,11 @@ const FilterComponent = ({
                                                             'field'
                                                         )}
                                                     >
-                                                        <MenuItem value="field1">
-                                                            Field 1
-                                                        </MenuItem>
-                                                        <MenuItem value="field2">
-                                                            Field 2
-                                                        </MenuItem>
+                                                        {fieldOptions.map((option) => (
+                                                            <MenuItem key={option} value={option}>
+                                                                {option}
+                                                            </MenuItem>
+                                                        ))}
                                                     </Select>
                                                 </FormControl>
                                                 <FormControl fullWidth>
@@ -352,12 +495,11 @@ const FilterComponent = ({
                                                             'operator'
                                                         )}
                                                     >
-                                                        <MenuItem value="equals">
-                                                            Equals
-                                                        </MenuItem>
-                                                        <MenuItem value="contains">
-                                                            Contains
-                                                        </MenuItem>
+                                                        {operators.map((option) => (
+                                                            <MenuItem key={option} value={option}>
+                                                                {option}
+                                                            </MenuItem>
+                                                        ))}
                                                     </Select>
                                                 </FormControl>
                                                 <TextField
@@ -374,6 +516,7 @@ const FilterComponent = ({
                                                     display: 'flex',
                                                     justifyContent: 'flex-end',
                                                     alignItems: 'center',
+                                                    gap: 10
                                                 }}
                                             >
                                                 <Button
@@ -404,19 +547,81 @@ const FilterComponent = ({
                                                             />
                                                         )}
 
-                                                        <Chip
-                                                            label={`${condition.field} ${condition.operator} ${condition.value}`}
-                                                            onDelete={() =>
-                                                                deleteCondition(
-                                                                    index
-                                                                )
-                                                            }
-                                                            color="primary"
-                                                            variant="outlined"
-                                                            sx={{
-                                                                fontSize: 14,
-                                                            }}
-                                                        />
+                                                        {editingIndex === index ? (
+                                                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                                                <FormControl size="small" fullWidth>
+                                                                    <InputLabel>
+                                                                        Select Field
+                                                                    </InputLabel>
+                                                                    <Select
+                                                                        value={condition.field}
+                                                                        label="Select Field"
+                                                                        onChange={handleChange(
+                                                                            'field',
+                                                                            index
+                                                                        )}
+                                                                    >
+                                                                        {fieldOptions.map((option) => (
+                                                                            <MenuItem key={option} value={option}>
+                                                                                {option}
+                                                                            </MenuItem>
+                                                                        ))}
+                                                                    </Select>
+                                                                </FormControl>
+                                                                <FormControl size="small" fullWidth>
+                                                                    <InputLabel>
+                                                                        Select Operator
+                                                                    </InputLabel>
+                                                                    <Select
+                                                                        value={condition.operator}
+                                                                        label="Select Operator"
+                                                                        onChange={handleChange(
+                                                                            'operator',
+                                                                            index
+                                                                        )}
+                                                                    >
+                                                                        <MenuItem value="equals">
+                                                                            Equals
+                                                                        </MenuItem>
+                                                                        <MenuItem value="contains">
+                                                                            Contains
+                                                                        </MenuItem>
+                                                                    </Select>
+                                                                </FormControl>
+                                                                <TextField
+                                                                    size="small"
+                                                                    value={condition.value}
+                                                                    onChange={handleChange(
+                                                                        'value',
+                                                                        index
+                                                                    )}
+                                                                />
+                                                                <IconButton
+                                                                    onClick={stopEditingCondition}
+                                                                >
+                                                                    <CloseIcon />
+                                                                </IconButton>
+                                                            </Box>
+                                                        ) : (
+                                                            <Chip
+                                                                label={`${condition.field} ${condition.operator} ${condition.value}`}
+                                                                onClick={() =>
+                                                                    startEditingCondition(
+                                                                        index
+                                                                    )
+                                                                }
+                                                                onDelete={() =>
+                                                                    deleteCondition(
+                                                                        index
+                                                                    )
+                                                                }
+                                                                color="primary"
+                                                                variant="outlined"
+                                                                sx={{
+                                                                    fontSize: 14,
+                                                                }}
+                                                            />
+                                                        )}
                                                     </React.Fragment>
                                                 )
                                             )}
@@ -489,12 +694,6 @@ const FilterComponent = ({
                                             >
                                                 <CloseIcon />
                                             </IconButton>
-                                            {/* {conditions.map((condition, index) => (
-                                                <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                                                    <Typography>{condition.con}{condition.field} {condition.operator} {condition.value}</Typography>
-                                                    <IconButton onClick={() => deleteCondition(index)}><DeleteIcon /></IconButton>
-                                                </Box>
-                                            ))} */}
                                             <div sx={{ mb: 2 }}>
                                                 Add Condition
                                             </div>
@@ -505,29 +704,7 @@ const FilterComponent = ({
                                                     mb: 2,
                                                 }}
                                             >
-                                                {conditions.length > 0 && (
-                                                    <FormControl fullWidth>
-                                                        <InputLabel>
-                                                            Select Field
-                                                        </InputLabel>
-                                                        <Select
-                                                            value={
-                                                                newCondition.con
-                                                            }
-                                                            label="Select"
-                                                            onChange={handleChange(
-                                                                'con'
-                                                            )}
-                                                        >
-                                                            <MenuItem value="AND">
-                                                                AND
-                                                            </MenuItem>
-                                                            <MenuItem value="OR">
-                                                                OR
-                                                            </MenuItem>
-                                                        </Select>
-                                                    </FormControl>
-                                                )}
+
                                                 <FormControl fullWidth>
                                                     <InputLabel>
                                                         Select Field
@@ -541,12 +718,11 @@ const FilterComponent = ({
                                                             'field'
                                                         )}
                                                     >
-                                                        <MenuItem value="field1">
-                                                            Field 1
-                                                        </MenuItem>
-                                                        <MenuItem value="field2">
-                                                            Field 2
-                                                        </MenuItem>
+                                                        {fieldOptions.map((option) => (
+                                                            <MenuItem key={option} value={option}>
+                                                                {option}
+                                                            </MenuItem>
+                                                        ))}
                                                     </Select>
                                                 </FormControl>
                                                 <FormControl fullWidth>
@@ -585,6 +761,7 @@ const FilterComponent = ({
                                                     justifyContent: 'flex-end',
                                                     alignItems: 'center',
                                                 }}
+
                                             >
                                                 <Button
                                                     variant="contained"
@@ -614,19 +791,81 @@ const FilterComponent = ({
                                                             />
                                                         )}
 
-                                                        <Chip
-                                                            label={`${condition.field} ${condition.operator} ${condition.value}`}
-                                                            onDelete={() =>
-                                                                deleteCondition(
-                                                                    index
-                                                                )
-                                                            }
-                                                            color="primary"
-                                                            variant="outlined"
-                                                            sx={{
-                                                                fontSize: 14,
-                                                            }}
-                                                        />
+                                                        {editingIndex === index ? (
+                                                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                                                <FormControl size="small" fullWidth>
+                                                                    <InputLabel>
+                                                                        Select Field
+                                                                    </InputLabel>
+                                                                    <Select
+                                                                        value={condition.field}
+                                                                        label="Select Field"
+                                                                        onChange={handleChange(
+                                                                            'field',
+                                                                            index
+                                                                        )}
+                                                                    >
+                                                                        {fieldOptions.map((option) => (
+                                                                            <MenuItem key={option} value={option}>
+                                                                                {option}
+                                                                            </MenuItem>
+                                                                        ))}
+                                                                    </Select>
+                                                                </FormControl>
+                                                                <FormControl size="small" fullWidth>
+                                                                    <InputLabel>
+                                                                        Select Operator
+                                                                    </InputLabel>
+                                                                    <Select
+                                                                        value={condition.operator}
+                                                                        label="Select Operator"
+                                                                        onChange={handleChange(
+                                                                            'operator',
+                                                                            index
+                                                                        )}
+                                                                    >
+                                                                        <MenuItem value="equals">
+                                                                            Equals
+                                                                        </MenuItem>
+                                                                        <MenuItem value="contains">
+                                                                            Contains
+                                                                        </MenuItem>
+                                                                    </Select>
+                                                                </FormControl>
+                                                                <TextField
+                                                                    size="small"
+                                                                    value={condition.value}
+                                                                    onChange={handleChange(
+                                                                        'value',
+                                                                        index
+                                                                    )}
+                                                                />
+                                                                <IconButton
+                                                                    onClick={stopEditingCondition}
+                                                                >
+                                                                    <CloseIcon />
+                                                                </IconButton>
+                                                            </Box>
+                                                        ) : (
+                                                            <Chip
+                                                                label={`${condition.field} ${condition.operator} ${condition.value}`}
+                                                                onClick={() =>
+                                                                    startEditingCondition(
+                                                                        index
+                                                                    )
+                                                                }
+                                                                onDelete={() =>
+                                                                    deleteCondition(
+                                                                        index
+                                                                    )
+                                                                }
+                                                                color="primary"
+                                                                variant="outlined"
+                                                                sx={{
+                                                                    fontSize: 14,
+                                                                }}
+                                                            />
+                                                        )}
                                                     </React.Fragment>
                                                 )
                                             )}
@@ -635,7 +874,7 @@ const FilterComponent = ({
                                 ) : (
                                     <Button
                                         variant="outlined"
-                                        onClick={handleMetricOpen}
+                                        onClick={handleAtrOpen}
                                         sx={{
                                             backgroundColor: 'white',
                                             color: 'gray.900',
@@ -661,7 +900,21 @@ const FilterComponent = ({
                             </div>
                         )}
                     </Box>
+                    <Button
+                        variant="contained"
+                        onClick={handleApply}
+                        sx={{
+                            position: 'absolute',
+                            bottom: 16,
+                            right: 16,
+                            width: '100px',
+                            height: '40px',
+                        }}
+                    >
+                        Apply
+                    </Button>
                 </Box>
+                
             </Modal>
         </Box>
     );
