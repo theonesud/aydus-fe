@@ -229,6 +229,23 @@ const FilterComponent = ({
                     <MenuItem value={365}>Last Year</MenuItem>
                 </Select>
             </FormControl>
+            <Button
+                variant="outlined"
+                sx={{
+                    backgroundColor: 'white',
+                    color: 'black',
+                    border: '1px solid #e0e0e0',
+                    boxShadow: '10px 10px 100px 0px rgba(16, 28, 45, 0.08)',
+                    '&:hover': {
+                        backgroundColor: '#f5f5f5',
+                    },
+                    width: '200px',
+                    height: '40px',
+                    fontSize: '0.875rem',
+                }}
+            >
+                Create Product Set
+            </Button>
             <IconButton
                 onClick={onDownload}
                 sx={{

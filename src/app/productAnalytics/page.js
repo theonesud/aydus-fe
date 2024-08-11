@@ -60,11 +60,17 @@ const ProductAnalyticsPage = () => {
     };
 
     return (
-        <div className="min-h-screen">
-            <Layout>
-                <h1 className="text-3xl font-semibold leading-16 text-gray-900 pb-10 pt-16">
-                    Product Insights
-                </h1>
+
+        <Layout>
+            <div className="min-h-screen">
+                <div className="border-b border-gray-200 pb-2 mb-2">
+                    <h3 style={{
+                        fontSize: '24px',
+                        fontWeight: 'bold',
+                        margin: '20px 0'
+                    }} className=" leading-6 text-gray-900">Product Insights</h3>
+                </div>
+                
                 <FilterComponent
                     onFilterChange={(event) =>
                         setFilterText(event.target.value)
@@ -97,8 +103,9 @@ const ProductAnalyticsPage = () => {
                             )
                     )}
                 />
-            </Layout>
-        </div>
+            </div>
+        </Layout>
+
     );
 };
 

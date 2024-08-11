@@ -28,7 +28,7 @@ const navigation = [
         href: '/productAnalytics',
         icon: PresentationChartBarIcon,
     }, // New section
-    { name: 'Stop Loss', href: '#', icon: NoSymbolIcon },
+    { name: 'Stop Loss', href: '/stopLoss', icon: NoSymbolIcon },
     { name: 'Catalog', href: '#', icon: FolderIcon },
 ];
 
