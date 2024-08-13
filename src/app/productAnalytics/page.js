@@ -6,6 +6,7 @@ import Layout from '@/components/Layout';
 import { parse } from 'papaparse';
 import { saveAs } from 'file-saver';
 import { Stack, Chip } from '@mui/material';
+import { productApi } from '@/utils/api'; // Ensure you import the API function
 
 const ProductAnalyticsPage = () => {
     const [filterText, setFilterText] = useState('');
@@ -55,8 +56,35 @@ const ProductAnalyticsPage = () => {
         saveAs(blob, 'filtered_data.csv');
     };
 
-    const handleApplyConditions = (conditions) => {
+    const handleApplyConditions = async (conditions) => {
         setAppliedConditions(conditions);
+
+        // Define your post data structure
+        const postData = {
+            metrics_filter: conditions, // assuming these are the conditions
+            attribute_filter: conditions, // modify according to your needs
+            from_date: '2022-01-01', // example date, update with actual
+            to_date: '2022-12-31', // example date, update with actual
+            sorting_column: 'price', // update with actual column
+            sorting_order: 'asc' // update with actual order
+        };
+
+        try {
+            // Call the API
+            await productApi(
+                postData,
+                (response) => {
+                    console.log('API Response:', response.data); // Log the response
+                    // Optionally update productsData with the API response
+                    setProductsData(response.data || []);
+                },
+                (error) => {
+                    console.error('API Error:', error);
+                }
+            );
+        } catch (error) {
+            console.error('Failed to call API:', error);
+        }
     };
 
     return (
