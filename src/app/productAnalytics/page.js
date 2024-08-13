@@ -61,7 +61,7 @@ const ProductAnalyticsPage = () => {
 
         // Define your post data structure
         const postData = {
-            metrics_filter: conditions, // assuming these are the conditions
+            metrics_filter: appliedConditions, // assuming these are the conditions
             attribute_filter: conditions, // modify according to your needs
             from_date: '2022-01-01', // example date, update with actual
             to_date: '2022-12-31', // example date, update with actual

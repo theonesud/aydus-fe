@@ -170,12 +170,20 @@ const FilterComponent = ({
     "TotalSpendEstimated",
     "TransactionRate",
   ];
+  // const operators = [
+  //   "Equals",
+  //   "Not Equals",
+  //   "Greater Than",
+  //   "Less Than",
+  //   "Greater Than or Equals",
+  // ];
   const operators = [
-    "Equals",
-    "Not Equals",
-    "Greater Than",
-    "Less Than",
-    "Greater Than or Equals",
+    { value: "==", label: "Equals" },
+    { value: "!=", label: "Not Equals" },
+    { value: ">", label: "Greater Than" },
+    { value: "<", label: "Less Than" },
+    { value: ">=", label: "Greater Than or Equals" },
+    { value: "<=", label: "Less Than or Equals" },
   ];
 
   return (
@@ -377,6 +385,7 @@ const FilterComponent = ({
                       </IconButton>
                       {conditions.map((condition, index) => (
                         <div
+                          key={index}
                           style={{
                             display: "flex",
                             gap: 10,
@@ -405,8 +414,8 @@ const FilterComponent = ({
                               onChange={handleChange("operator", index)}
                             >
                               {operators.map((option) => (
-                                <MenuItem key={option} value={option}>
-                                  {option}
+                                <MenuItem key={option.value} value={option.value}>
+                                  {option.label}
                                 </MenuItem>
                               ))}
                             </Select>
@@ -466,8 +475,8 @@ const FilterComponent = ({
                             onChange={handleChange("operator")}
                           >
                             {operators.map((option) => (
-                              <MenuItem key={option} value={option}>
-                                {option}
+                              <MenuItem key={option.value} value={option.value}>
+                                {option.label}
                               </MenuItem>
                             ))}
                           </Select>
@@ -533,8 +542,11 @@ const FilterComponent = ({
                                   label="Select Operator"
                                   onChange={handleChange("operator", index)}
                                 >
-                                  <MenuItem value="equals">Equals</MenuItem>
-                                  <MenuItem value="contains">Contains</MenuItem>
+                                  {operators.map((option) => (
+                                    <MenuItem key={option.value} value={option.value}>
+                                      {option.label}
+                                    </MenuItem>
+                                  ))}
                                 </Select>
                               </FormControl>
                               <TextField
@@ -718,8 +730,11 @@ const FilterComponent = ({
                                   label="Select Operator"
                                   onChange={handleChange("operator", index)}
                                 >
-                                  <MenuItem value="equals">Equals</MenuItem>
-                                  <MenuItem value="contains">Contains</MenuItem>
+                                  {operators.map((option) => (
+                                    <MenuItem key={option.value} value={option.value}>
+                                      {option.label}
+                                    </MenuItem>
+                                  ))}
                                 </Select>
                               </FormControl>
                               <TextField
