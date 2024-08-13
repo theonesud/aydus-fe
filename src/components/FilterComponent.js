@@ -33,26 +33,30 @@ const FilterComponent = ({
   const [open, setOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState("metrics");
   const [selectedMetrics, setSelectedMetrics] = useState(false);
-  const [isMetApplied, setIsMetApplied] = useState(false);
-  const [isAtrApplied, setIsAtrApplied] = useState(false);
   const [selectedAttributes, setSelectedAttributes] = useState(false);
-  const [conditions, setConditions] = useState([]);
-  const [newCondition, setNewCondition] = useState({
+  const [metricConditions, setMetricConditions] = useState([]);
+  const [attributeConditions, setAttributeConditions] = useState([]);
+  const [newMetricCondition, setNewMetricCondition] = useState({
     field: "",
     operator: "",
     value: "",
     conjunction: "AND", // Default conjunction
   });
-  console.log(conditions, newCondition, 'skjfldf')
+  const [newAttributeCondition, setNewAttributeCondition] = useState({
+    field: "",
+    operator: "",
+    value: "",
+    conjunction: "AND", // Default conjunction
+  });
   const [editingIndex, setEditingIndex] = useState(null);
-
-  // new state 
-  // const [dateRange, setDateRange] = useState({startDate: null, endDate: null});
 
   const handleClickOpen = () => {
     handleClickOpenFunction();
-    // setOpen(true);
+    setOpen(true);
   };
+  const handleProductSet = () => {
+    handleClickOpenFunction()
+  }
 
   const handleClose = () => {
     setOpen(false);
@@ -65,32 +69,51 @@ const FilterComponent = ({
 
   const handleMetricOpen = () => {
     setSelectedMetrics(true);
-    setIsMetApplied(true);
   };
 
-  const handleAtrOpen = () => {
+  const handleAttributeOpen = () => {
     setSelectedAttributes(true);
-    setIsAtrApplied(true);
   };
 
-  const addCondition = () => {
-    setConditions([...conditions, newCondition]);
-    setNewCondition({ field: "", operator: "", value: "", conjunction: "AND" }); // Reset with default conjunction
+  const addMetricCondition = () => {
+    setMetricConditions([...metricConditions, newMetricCondition]);
+    setNewMetricCondition({ field: "", operator: "", value: "", conjunction: "AND" }); // Reset with default conjunction
   };
 
-  const deleteCondition = (index) => {
-    setConditions(conditions.filter((_, i) => i !== index));
+  const addAttributeCondition = () => {
+    setAttributeConditions([...attributeConditions, newAttributeCondition]);
+    setNewAttributeCondition({ field: "", operator: "", value: "", conjunction: "AND" }); // Reset with default conjunction
   };
 
-  const handleChange = (prop, index) => (event) => {
+  const deleteMetricCondition = (index) => {
+    setMetricConditions(metricConditions.filter((_, i) => i !== index));
+  };
+
+  const deleteAttributeCondition = (index) => {
+    setAttributeConditions(attributeConditions.filter((_, i) => i !== index));
+  };
+
+  const handleMetricChange = (prop, index) => (event) => {
     if (index !== undefined) {
       // Editing existing condition
-      const updatedConditions = [...conditions];
+      const updatedConditions = [...metricConditions];
       updatedConditions[index][prop] = event.target.value;
-      setConditions(updatedConditions);
+      setMetricConditions(updatedConditions);
     } else {
       // Updating new condition form
-      setNewCondition({ ...newCondition, [prop]: event.target.value });
+      setNewMetricCondition({ ...newMetricCondition, [prop]: event.target.value });
+    }
+  };
+
+  const handleAttributeChange = (prop, index) => (event) => {
+    if (index !== undefined) {
+      // Editing existing condition
+      const updatedConditions = [...attributeConditions];
+      updatedConditions[index][prop] = event.target.value;
+      setAttributeConditions(updatedConditions);
+    } else {
+      // Updating new condition form
+      setNewAttributeCondition({ ...newAttributeCondition, [prop]: event.target.value });
     }
   };
 
@@ -101,10 +124,12 @@ const FilterComponent = ({
   const stopEditingCondition = () => {
     setEditingIndex(null);
   };
+
   const handleApply = () => {
-    onApplyConditions(conditions); // send conditions to parent
+    onApplyConditions(metricConditions, attributeConditions); // Send separate conditions to parent
     handleClose();
   };
+
   const commonTypographyStyles = {
     padding: 1,
     cursor: "pointer",
@@ -127,7 +152,7 @@ const FilterComponent = ({
     marginLeft: 8,
   };
 
-  const fieldOptions = [
+  const metricFieldOptions = [
     "ActiveProductCount",
     "ActiveVariantCount",
     "AddToCartRate",
@@ -159,22 +184,21 @@ const FilterComponent = ({
     "InStockVariantCount",
     "OutOfStockProductCount",
     "OutofstockVariantsCount",
-    "ProductName",
-    "ProductPageViews",
-    "ProductSku",
-    "PurchaseValue",
-    "Purchases",
-    "PurchasesPmaxAds",
-    "PurchasesValuePmaxAds",
-    "Purchases_1",
-    "ROASPmaxAds",
-    "SpendsCatalogAds",
-    "SpendsPMaxAds",
     "TotalCatalogSpendsFB+Google",
     "TotalProductCount",
     "TotalRevenue",
     "TotalSpendEstimated",
     "TransactionRate",
+  ];
+
+  const attributeFieldOptions = [
+    "ProductSKU",
+    "VariantSKU",
+    "ProductName",
+    "Category",
+    "Collections",
+    "DaysAdded",
+    "PagePath"
   ];
 
   const operators = [
@@ -203,7 +227,7 @@ const FilterComponent = ({
       />
       <Button
         variant="outlined"
-        onClick={handleOpen || handleClickOpen}
+        onClick={handleClickOpen}
         sx={{
           backgroundColor: "white",
           color: "black",
@@ -220,7 +244,7 @@ const FilterComponent = ({
       </Button>
       <Button
         variant="outlined"
-        onClick={handleOpen || handleClickOpen}
+        onClick={handleProductSet}
         sx={{
           backgroundColor: "white",
           color: "black",
@@ -248,11 +272,11 @@ const FilterComponent = ({
             boxShadow: "10px 10px 100px 0px rgba(16, 28, 45, 0.08)",
           }}
         >
-          <MenuItem value={{conunt: 3, type: 'days'}}>Last 3 Days</MenuItem>
-          <MenuItem value={{conunt: 7, type: 'days'}}>Last 7 Days</MenuItem>
-          <MenuItem value={{conunt: 1, type: 'months'}}>Last Month</MenuItem>
-          <MenuItem value={{conunt: 6, type: 'months'}}>Last 6 Months</MenuItem>
-          <MenuItem value={{conunt: 1, type: 'year'}}>Last Year</MenuItem>
+          <MenuItem value={{count: 3, type: 'days'}}>Last 3 Days</MenuItem>
+          <MenuItem value={{count: 7, type: 'days'}}>Last 7 Days</MenuItem>
+          <MenuItem value={{count: 1, type: 'months'}}>Last Month</MenuItem>
+          <MenuItem value={{count: 6, type: 'months'}}>Last 6 Months</MenuItem>
+          <MenuItem value={{count: 1, type: 'year'}}>Last Year</MenuItem>
         </Select>
       </FormControl>
       {onApplyClick && (
@@ -327,7 +351,7 @@ const FilterComponent = ({
               }}
             >
               Metrics
-              {isMetApplied && <span style={appliedBadgeStyles}>Applied</span>}
+              {selectedMetrics && <span style={appliedBadgeStyles}>Applied</span>}
             </Typography>
 
             <Typography
@@ -341,7 +365,7 @@ const FilterComponent = ({
               }}
             >
               Attributes
-              {isAtrApplied && <span style={appliedBadgeStyles}>Applied</span>}
+              {selectedAttributes && <span style={appliedBadgeStyles}>Applied</span>}
             </Typography>
           </Box>
 
@@ -373,7 +397,6 @@ const FilterComponent = ({
                       <IconButton
                         onClick={() => {
                           setSelectedMetrics(false);
-                          setIsMetApplied(false);
                         }}
                         sx={{
                           position: "absolute",
@@ -383,7 +406,7 @@ const FilterComponent = ({
                       >
                         <CloseIcon />
                       </IconButton>
-                      {conditions.map((condition, index) => (
+                      {metricConditions.map((condition, index) => (
                         <div
                           key={index}
                           style={{
@@ -397,9 +420,9 @@ const FilterComponent = ({
                             <Select
                               value={condition.field}
                               label="Select Field"
-                              onChange={handleChange("field", index)}
+                              onChange={handleMetricChange("field", index)}
                             >
-                              {fieldOptions.map((option) => (
+                              {metricFieldOptions.map((option) => (
                                 <MenuItem key={option} value={option}>
                                   {option}
                                 </MenuItem>
@@ -411,7 +434,7 @@ const FilterComponent = ({
                             <Select
                               value={condition.operator}
                               label="Select Operator"
-                              onChange={handleChange("operator", index)}
+                              onChange={handleMetricChange("operator", index)}
                             >
                               {operators.map((option) => (
                                 <MenuItem key={option.value} value={option.value}>
@@ -424,9 +447,9 @@ const FilterComponent = ({
                             fullWidth
                             label="Enter Value"
                             value={condition.value}
-                            onChange={handleChange("value", index)}
+                            onChange={handleMetricChange("value", index)}
                           />
-                          <IconButton onClick={() => deleteCondition(index)}>
+                          <IconButton onClick={() => deleteMetricCondition(index)}>
                             <DeleteIcon />
                           </IconButton>
                         </div>
@@ -439,13 +462,13 @@ const FilterComponent = ({
                           mb: 2,
                         }}
                       >
-                        {conditions.length > 0 && (
+                        {metricConditions.length > 0 && (
                           <FormControl fullWidth>
                             <InputLabel>Select Conjunction</InputLabel>
                             <Select
-                              value={newCondition.conjunction}
+                              value={newMetricCondition.conjunction}
                               label="Select Conjunction"
-                              onChange={handleChange("conjunction")}
+                              onChange={handleMetricChange("conjunction")}
                             >
                               <MenuItem value="AND">AND</MenuItem>
                               <MenuItem value="OR">OR</MenuItem>
@@ -456,11 +479,11 @@ const FilterComponent = ({
                         <FormControl fullWidth>
                           <InputLabel>Select Field</InputLabel>
                           <Select
-                            value={newCondition.field}
+                            value={newMetricCondition.field}
                             label="Select Field"
-                            onChange={handleChange("field")}
+                            onChange={handleMetricChange("field")}
                           >
-                            {fieldOptions.map((option) => (
+                            {metricFieldOptions.map((option) => (
                               <MenuItem key={option} value={option}>
                                 {option}
                               </MenuItem>
@@ -470,9 +493,9 @@ const FilterComponent = ({
                         <FormControl fullWidth>
                           <InputLabel>Select Operator</InputLabel>
                           <Select
-                            value={newCondition.operator}
+                            value={newMetricCondition.operator}
                             label="Select Operator"
-                            onChange={handleChange("operator")}
+                            onChange={handleMetricChange("operator")}
                           >
                             {operators.map((option) => (
                               <MenuItem key={option.value} value={option.value}>
@@ -484,8 +507,8 @@ const FilterComponent = ({
                         <TextField
                           fullWidth
                           label="Enter Value"
-                          value={newCondition.value}
-                          onChange={handleChange("value")}
+                          value={newMetricCondition.value}
+                          onChange={handleMetricChange("value")}
                         />
                       </Box>
                       <div
@@ -499,14 +522,14 @@ const FilterComponent = ({
                         <Button
                           variant="contained"
                           startIcon={<AddIcon />}
-                          onClick={addCondition}
+                          onClick={addMetricCondition}
                         >
                           Add Condition
                         </Button>
                       </div>
                     </Box>
                     <Stack direction="row" spacing={1} sx={{ mb: 2, mt: 4 }}>
-                      {conditions.map((condition, index) => (
+                      {metricConditions.map((condition, index) => (
                         <React.Fragment key={index}>
                           {index > 0 && (
                             <Chip
@@ -526,9 +549,9 @@ const FilterComponent = ({
                                 <Select
                                   value={condition.field}
                                   label="Select Field"
-                                  onChange={handleChange("field", index)}
+                                  onChange={handleMetricChange("field", index)}
                                 >
-                                  {fieldOptions.map((option) => (
+                                  {metricFieldOptions.map((option) => (
                                     <MenuItem key={option} value={option}>
                                       {option}
                                     </MenuItem>
@@ -540,7 +563,7 @@ const FilterComponent = ({
                                 <Select
                                   value={condition.operator}
                                   label="Select Operator"
-                                  onChange={handleChange("operator", index)}
+                                  onChange={handleMetricChange("operator", index)}
                                 >
                                   {operators.map((option) => (
                                     <MenuItem key={option.value} value={option.value}>
@@ -552,7 +575,7 @@ const FilterComponent = ({
                               <TextField
                                 size="small"
                                 value={condition.value}
-                                onChange={handleChange("value", index)}
+                                onChange={handleMetricChange("value", index)}
                               />
                               <IconButton onClick={stopEditingCondition}>
                                 <CloseIcon />
@@ -562,7 +585,7 @@ const FilterComponent = ({
                             <Chip
                               label={`${condition.field} ${condition.operator} ${condition.value}`}
                               onClick={() => startEditingCondition(index)}
-                              onDelete={() => deleteCondition(index)}
+                              onDelete={() => deleteMetricCondition(index)}
                               color="primary"
                               variant="outlined"
                               sx={{
@@ -612,7 +635,7 @@ const FilterComponent = ({
                 >
                   Common attributes include: SKU id, MRP, Price
                 </div>
-                {selectedMetrics ? (
+                {selectedAttributes ? (
                   <div>
                     <Box
                       sx={{
@@ -626,8 +649,7 @@ const FilterComponent = ({
                     >
                       <IconButton
                         onClick={() => {
-                          setSelectedMetrics(false);
-                          setIsMetApplied(false);
+                          setSelectedAttributes(false);
                         }}
                         sx={{
                           position: "absolute",
@@ -637,6 +659,54 @@ const FilterComponent = ({
                       >
                         <CloseIcon />
                       </IconButton>
+                      {attributeConditions.map((condition, index) => (
+                        <div
+                          key={index}
+                          style={{
+                            display: "flex",
+                            gap: 10,
+                            marginBottom: 10,
+                          }}
+                        >
+                          <FormControl fullWidth>
+                            <InputLabel>Select Field</InputLabel>
+                            <Select
+                              value={condition.field}
+                              label="Select Field"
+                              onChange={handleAttributeChange("field", index)}
+                            >
+                              {attributeFieldOptions.map((option) => (
+                                <MenuItem key={option} value={option}>
+                                  {option}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          <FormControl fullWidth>
+                            <InputLabel>Select Operator</InputLabel>
+                            <Select
+                              value={condition.operator}
+                              label="Select Operator"
+                              onChange={handleAttributeChange("operator", index)}
+                            >
+                              {operators.map((option) => (
+                                <MenuItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          <TextField
+                            fullWidth
+                            label="Enter Value"
+                            value={condition.value}
+                            onChange={handleAttributeChange("value", index)}
+                          />
+                          <IconButton onClick={() => deleteAttributeCondition(index)}>
+                            <DeleteIcon />
+                          </IconButton>
+                        </div>
+                      ))}
                       <div sx={{ mb: 2 }}>Add Condition</div>
                       <Box
                         sx={{
@@ -645,14 +715,28 @@ const FilterComponent = ({
                           mb: 2,
                         }}
                       >
+                        {attributeConditions.length > 0 && (
+                          <FormControl fullWidth>
+                            <InputLabel>Select Conjunction</InputLabel>
+                            <Select
+                              value={newAttributeCondition.conjunction}
+                              label="Select Conjunction"
+                              onChange={handleAttributeChange("conjunction")}
+                            >
+                              <MenuItem value="AND">AND</MenuItem>
+                              <MenuItem value="OR">OR</MenuItem>
+                            </Select>
+                          </FormControl>
+                        )}
+
                         <FormControl fullWidth>
                           <InputLabel>Select Field</InputLabel>
                           <Select
-                            value={newCondition.field}
+                            value={newAttributeCondition.field}
                             label="Select Field"
-                            onChange={handleChange("field")}
+                            onChange={handleAttributeChange("field")}
                           >
-                            {fieldOptions.map((option) => (
+                            {attributeFieldOptions.map((option) => (
                               <MenuItem key={option} value={option}>
                                 {option}
                               </MenuItem>
@@ -662,19 +746,22 @@ const FilterComponent = ({
                         <FormControl fullWidth>
                           <InputLabel>Select Operator</InputLabel>
                           <Select
-                            value={newCondition.operator}
+                            value={newAttributeCondition.operator}
                             label="Select Operator"
-                            onChange={handleChange("operator")}
+                            onChange={handleAttributeChange("operator")}
                           >
-                            <MenuItem value="equals">Equals</MenuItem>
-                            <MenuItem value="contains">Contains</MenuItem>
+                            {operators.map((option) => (
+                              <MenuItem key={option.value} value={option.value}>
+                                {option.label}
+                              </MenuItem>
+                            ))}
                           </Select>
                         </FormControl>
                         <TextField
                           fullWidth
                           label="Enter Value"
-                          value={newCondition.value}
-                          onChange={handleChange("value")}
+                          value={newAttributeCondition.value}
+                          onChange={handleAttributeChange("value")}
                         />
                       </Box>
                       <div
@@ -682,19 +769,20 @@ const FilterComponent = ({
                           display: "flex",
                           justifyContent: "flex-end",
                           alignItems: "center",
+                          gap: 10,
                         }}
                       >
                         <Button
                           variant="contained"
                           startIcon={<AddIcon />}
-                          onClick={addCondition}
+                          onClick={addAttributeCondition}
                         >
                           Add Condition
                         </Button>
                       </div>
                     </Box>
                     <Stack direction="row" spacing={1} sx={{ mb: 2, mt: 4 }}>
-                      {conditions.map((condition, index) => (
+                      {attributeConditions.map((condition, index) => (
                         <React.Fragment key={index}>
                           {index > 0 && (
                             <Chip
@@ -714,9 +802,9 @@ const FilterComponent = ({
                                 <Select
                                   value={condition.field}
                                   label="Select Field"
-                                  onChange={handleChange("field", index)}
+                                  onChange={handleAttributeChange("field", index)}
                                 >
-                                  {fieldOptions.map((option) => (
+                                  {attributeFieldOptions.map((option) => (
                                     <MenuItem key={option} value={option}>
                                       {option}
                                     </MenuItem>
@@ -728,7 +816,7 @@ const FilterComponent = ({
                                 <Select
                                   value={condition.operator}
                                   label="Select Operator"
-                                  onChange={handleChange("operator", index)}
+                                  onChange={handleAttributeChange("operator", index)}
                                 >
                                   {operators.map((option) => (
                                     <MenuItem key={option.value} value={option.value}>
@@ -740,7 +828,7 @@ const FilterComponent = ({
                               <TextField
                                 size="small"
                                 value={condition.value}
-                                onChange={handleChange("value", index)}
+                                onChange={handleAttributeChange("value", index)}
                               />
                               <IconButton onClick={stopEditingCondition}>
                                 <CloseIcon />
@@ -750,7 +838,7 @@ const FilterComponent = ({
                             <Chip
                               label={`${condition.field} ${condition.operator} ${condition.value}`}
                               onClick={() => startEditingCondition(index)}
-                              onDelete={() => deleteCondition(index)}
+                              onDelete={() => deleteAttributeCondition(index)}
                               color="primary"
                               variant="outlined"
                               sx={{
@@ -765,7 +853,7 @@ const FilterComponent = ({
                 ) : (
                   <Button
                     variant="outlined"
-                    onClick={handleAtrOpen}
+                    onClick={handleAttributeOpen}
                     sx={{
                       backgroundColor: "white",
                       color: "gray.900",
