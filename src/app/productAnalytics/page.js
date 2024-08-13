@@ -6,7 +6,7 @@ import Layout from '@/components/Layout';
 import { parse } from 'papaparse';
 import { saveAs } from 'file-saver';
 import { Stack, Chip } from '@mui/material';
-import { productApi } from '@/utils/api'; // Ensure you import the API function
+import { creatProductSetApi, productApi } from '@/utils/api'; // Ensure you import the API function
 
 const ProductAnalyticsPage = () => {
     const [filterText, setFilterText] = useState('');
@@ -15,29 +15,46 @@ const ProductAnalyticsPage = () => {
 
     // Fetch and parse CSV on mount
     useEffect(() => {
-        fetch('/products.csv') // Ensure the CSV is in the correct directory
-            .then((response) => response.text())
-            .then((csvData) => {
-                parse(csvData, {
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: (results) => {
-                        const formattedData = results.data.map((row) => {
-                            const formattedRow = {};
-                            Object.keys(row).forEach((key) => {
-                                const cleanKey = key
-                                    .trim()
-                                    .replace(/[().% ]+/g, '');
-                                formattedRow[cleanKey] = row[key];
-                            });
-                            return formattedRow;
-                        });
-                        setProductsData(formattedData);
-                    },
-                });
-            })
-            .catch((err) => console.error('Failed to load CSV data:', err));
+        fetchProductsApiCall(); // Call the API on mount
     }, []);
+
+    const fetchProductsApiCall = async (inputData = {}) => {
+        try {
+            // Call the API
+            await productApi(
+                inputData,
+                (response) => {
+                    console.log('API Response:', response.data); // Log the response
+                    // Optionally update productsData with the API response
+                    setProductsData(response.data.data || []);
+                },
+                (error) => {
+                    console.error('API Error:', error);
+                }
+            );
+        } catch (error) {
+            console.error('Failed to call API:', error);
+        }
+    }
+
+    const createProductSetCall = async (inputData = {}) => {
+        try {
+            // Call the API
+            await creatProductSetApi(
+                inputData,
+                (response) => {
+                    console.log('API Response:', response.data); // Log the response
+                    // Optionally update productsData with the API response
+                    // setProductsData(response.data.data || []);
+                },
+                (error) => {
+                    console.error('API Error:', error);
+                }
+            );
+        } catch (error) {
+            console.error('Failed to call API:', error);
+        }
+    }
 
     const handleDownload = () => {
         const filteredData = productsData.filter(
@@ -57,35 +74,48 @@ const ProductAnalyticsPage = () => {
     };
 
     const handleApplyConditions = async (conditions) => {
+        console.log(conditions, 'conditions');
         setAppliedConditions(conditions);
 
         // Define your post data structure
         const postData = {
-            metrics_filter: appliedConditions, // assuming these are the conditions
-            attribute_filter: conditions, // modify according to your needs
-            from_date: '2022-01-01', // example date, update with actual
-            to_date: '2022-12-31', // example date, update with actual
+            metrics_filter: [...conditions.map((item, index) => {
+                if (index === 0) {
+                    let newCondition = {    ...item};
+                    delete newCondition.conjunction;
+                    return newCondition
+                } else {
+                    let newCondition = {    ...item};
+                    newCondition.conjunction = newCondition.conjunction.toLowerCase();
+                    return newCondition
+                }
+            })], // assuming these are the conditions
+            attribute_filter: [], // modify according to your needs
+            from_date: '2024-08-13', // example date, update with actual
+            to_date: '2024-07-13', // example date, update with actual
             sorting_column: 'price', // update with actual column
             sorting_order: 'asc' // update with actual order
         };
-
-        try {
-            // Call the API
-            await productApi(
-                postData,
-                (response) => {
-                    console.log('API Response:', response.data); // Log the response
-                    // Optionally update productsData with the API response
-                    setProductsData(response.data || []);
-                },
-                (error) => {
-                    console.error('API Error:', error);
-                }
-            );
-        } catch (error) {
-            console.error('Failed to call API:', error);
-        }
+        fetchProductsApiCall(postData);
+        // try {
+        //     // Call the API
+        //     await productApi(
+        //         postData,
+        //         (response) => {
+        //             console.log('API Response:', response.data); // Log the response
+        //             // Optionally update productsData with the API response
+        //             setProductsData(response.data || []);
+        //         },
+        //         (error) => {
+        //             console.error('API Error:', error);
+        //         }
+        //     );
+        // } catch (error) {
+        //     console.error('Failed to call API:', error);
+        // }
     };
+
+
 
     return (
 
@@ -105,6 +135,24 @@ const ProductAnalyticsPage = () => {
                     }
                     onDownload={handleDownload}
                     onApplyConditions={handleApplyConditions} // pass the handler
+                    handleClickOpenFunction={() => {
+                        const postData = {
+                            metrics_filter: [...appliedConditions.map((item, index) => {
+                                if (index === 0) {
+                                    let newCondition = {    ...item};
+                                    delete newCondition.conjunction;
+                                    return newCondition
+                                } else {
+                                    let newCondition = {    ...item};
+                                    newCondition.conjunction = newCondition.conjunction.toLowerCase();
+                                    return newCondition
+                                }
+                            })], // assuming these are the conditions
+                            from_date: '2024-08-13', // example date, update with actual
+                            to_date: '2024-07-13', // example date, update with actual
+                        };
+                        createProductSetCall(postData);
+                    }}
                 />
                 {/* Display applied conditions as chips */}
                 <Stack direction="row" spacing={1} sx={{ mb: 2, mt: 4 }}>
@@ -121,15 +169,7 @@ const ProductAnalyticsPage = () => {
                     ))}
                 </Stack>
                 <AnalyticsTable
-                    data={productsData.filter(
-                        (product) =>
-                            product.ProductName.toLowerCase().includes(
-                                filterText.toLowerCase()
-                            ) ||
-                            product.ProductSku.toLowerCase().includes(
-                                filterText.toLowerCase()
-                            )
-                    )}
+                    productsData={productsData}
                 />
             </div>
         </Layout>

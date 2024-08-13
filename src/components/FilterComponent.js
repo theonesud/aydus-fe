@@ -28,6 +28,7 @@ const FilterComponent = ({
   onDownload,
   handleOpen,
   onApplyClick,
+  handleClickOpenFunction
 }) => {
   const [open, setOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState("metrics");
@@ -40,12 +41,17 @@ const FilterComponent = ({
     field: "",
     operator: "",
     value: "",
-    con: "AND", // Default conjunction
+    conjunction: "AND", // Default conjunction
   });
+  console.log(conditions, newCondition, 'skjfldf')
   const [editingIndex, setEditingIndex] = useState(null);
 
+  // new state 
+  // const [dateRange, setDateRange] = useState({startDate: null, endDate: null});
+
   const handleClickOpen = () => {
-    setOpen(true);
+    handleClickOpenFunction();
+    // setOpen(true);
   };
 
   const handleClose = () => {
@@ -69,7 +75,7 @@ const FilterComponent = ({
 
   const addCondition = () => {
     setConditions([...conditions, newCondition]);
-    setNewCondition({ field: "", operator: "", value: "", con: "AND" }); // Reset with default conjunction
+    setNewCondition({ field: "", operator: "", value: "", conjunction: "AND" }); // Reset with default conjunction
   };
 
   const deleteCondition = (index) => {
@@ -170,13 +176,7 @@ const FilterComponent = ({
     "TotalSpendEstimated",
     "TransactionRate",
   ];
-  // const operators = [
-  //   "Equals",
-  //   "Not Equals",
-  //   "Greater Than",
-  //   "Less Than",
-  //   "Greater Than or Equals",
-  // ];
+
   const operators = [
     { value: "==", label: "Equals" },
     { value: "!=", label: "Not Equals" },
@@ -220,7 +220,7 @@ const FilterComponent = ({
       </Button>
       <Button
         variant="outlined"
-        // onClick={handleOpen || handleClickOpen}
+        onClick={handleOpen || handleClickOpen}
         sx={{
           backgroundColor: "white",
           color: "black",
@@ -248,11 +248,11 @@ const FilterComponent = ({
             boxShadow: "10px 10px 100px 0px rgba(16, 28, 45, 0.08)",
           }}
         >
-          <MenuItem value={3}>Last 3 Days</MenuItem>
-          <MenuItem value={7}>Last 7 Days</MenuItem>
-          <MenuItem value={30}>Last Month</MenuItem>
-          <MenuItem value={180}>Last 6 Months</MenuItem>
-          <MenuItem value={365}>Last Year</MenuItem>
+          <MenuItem value={{conunt: 3, type: 'days'}}>Last 3 Days</MenuItem>
+          <MenuItem value={{conunt: 7, type: 'days'}}>Last 7 Days</MenuItem>
+          <MenuItem value={{conunt: 1, type: 'months'}}>Last Month</MenuItem>
+          <MenuItem value={{conunt: 6, type: 'months'}}>Last 6 Months</MenuItem>
+          <MenuItem value={{conunt: 1, type: 'year'}}>Last Year</MenuItem>
         </Select>
       </FormControl>
       {onApplyClick && (
@@ -443,9 +443,9 @@ const FilterComponent = ({
                           <FormControl fullWidth>
                             <InputLabel>Select Conjunction</InputLabel>
                             <Select
-                              value={newCondition.con}
+                              value={newCondition.conjunction}
                               label="Select Conjunction"
-                              onChange={handleChange("con")}
+                              onChange={handleChange("conjunction")}
                             >
                               <MenuItem value="AND">AND</MenuItem>
                               <MenuItem value="OR">OR</MenuItem>
@@ -510,7 +510,7 @@ const FilterComponent = ({
                         <React.Fragment key={index}>
                           {index > 0 && (
                             <Chip
-                              label={`${condition.con}`}
+                              label={`${condition.conjunction}`}
                               color="primary"
                               variant="outlined"
                               sx={{
@@ -698,7 +698,7 @@ const FilterComponent = ({
                         <React.Fragment key={index}>
                           {index > 0 && (
                             <Chip
-                              label={`${condition.con}`}
+                              label={`${condition.conjunction}`}
                               color="primary"
                               variant="outlined"
                               sx={{

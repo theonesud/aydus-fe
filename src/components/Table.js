@@ -16,40 +16,8 @@ import {
 import Image from 'next/image';
 import placeholderImage from '../../assets/icon_cms1.jpg';
 
-const useCSVData = () => {
-    const [data, setData] = useState([]);
-
-    useEffect(() => {
-        fetch('/products.csv') // Ensure the CSV is in the correct directory
-            .then((response) => response.text())
-            .then((csvData) => {
-                parse(csvData, {
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: (results) => {
-                        const formattedData = results.data.map((row) => {
-                            const formattedRow = {};
-                            Object.keys(row).forEach((key) => {
-                                // Remove extra spaces and special characters from keys
-                                const cleanKey = key
-                                    .trim()
-                                    .replace(/[().% ]+/g, '');
-                                formattedRow[cleanKey] = row[key];
-                            });
-                            return formattedRow;
-                        });
-                        setData(formattedData);
-                    },
-                });
-            })
-            .catch((err) => console.error('Failed to load CSV data:', err));
-    }, []);
-
-    return data;
-};
-
-const AnalyticsTable = () => {
-    const productsData = useCSVData();
+const AnalyticsTable = ({productsData}) => {
+    // const productsData = useCSVData();
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [order, setOrder] = useState('asc');
@@ -101,7 +69,11 @@ const AnalyticsTable = () => {
                 >
                     <Box display="flex" flexDirection="row" alignItems="center">
                         <Image
-                            src={row.ImageURL || placeholderImage}
+                            src={
+                                row?.ProductImage
+                                    ? row.ProductImage
+                                    : placeholderImage
+                            }
                             alt="Product Image"
                             width={50}
                             height={50}
