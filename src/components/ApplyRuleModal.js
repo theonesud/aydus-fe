@@ -13,10 +13,26 @@ import {
   Label,
 } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
+import { Button } from "@mui/material";
 
-export default function ApplyRule({ open, setOpen }) {
+export default function ApplyRule({ open, setOpen, handleApply = () => {} }) {
   //   const [open, setOpen] = useState(true);
   const [selected, setSelected] = useState({ id: 0, name: "Daily" });
+  const [ruleData, setRuleData] = useState({
+    rule_name: "",
+    exclusion_limit: 0,
+    exclude_google: false,
+    exclude_fb: false,
+    repeats_on: [
+      { day: "Sunday", isSelected: false },
+      { day: "Monday", isSelected: false },
+      { day: "Tuesday", isSelected: false },
+      { day: "Wednesday", isSelected: false },
+      { day: "Thursday", isSelected: false },
+      { day: "Friday", isSelected: false },
+      { day: "Saturday", isSelected: false },
+    ],
+  });
 
   return (
     <Dialog open={open} onClose={setOpen} className="relative z-10 bg-black">
@@ -46,17 +62,28 @@ export default function ApplyRule({ open, setOpen }) {
                       name="ruleName"
                       type="text"
                       placeholder="abcd"
+                      value={ruleData.rule_name}
                       className="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                      onChange={(e) =>
+                        setRuleData({ ...ruleData, rule_name: e.target.value })
+                      }
                     />
                   </div>
                 </div>
                 <div className="mt-5 text-sm">
                   Don't exclude if total exclusion is {">"}{" "}
                   <input
-                    id="email"
-                    name="email"
+                    id="exclusionLimit"
+                    name="exclusionLimit"
                     type="number"
                     placeholder="10"
+                    value={ruleData.exclusion_limit}
+                    onChange={(e) =>
+                      setRuleData({
+                        ...ruleData,
+                        exclusion_limit: e.target.value,
+                      })
+                    }
                     className="rounded-md text-center w-12 border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
                   />{" "}
                   % of products
@@ -91,6 +118,13 @@ export default function ApplyRule({ open, setOpen }) {
                         type="checkbox"
                         aria-describedby="facebook-description"
                         className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                        value={ruleData.exclude_fb}
+                        onChange={(e) =>
+                          setRuleData({
+                            ...ruleData,
+                            exclude_fb: !ruleData.exclude_fb,
+                          })
+                        }
                       />
                     </div>
                     <div className="ml-3 text-sm leading-6">
@@ -110,6 +144,13 @@ export default function ApplyRule({ open, setOpen }) {
                         type="checkbox"
                         aria-describedby="google-description"
                         className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                        value={ruleData.exclude_google}
+                        onChange={(e) =>
+                          setRuleData({
+                            ...ruleData,
+                            exclude_google: !ruleData.exclude_google,
+                          })
+                        }
                       />
                     </div>
                     <div className="ml-3 text-sm leading-6">
@@ -178,17 +219,50 @@ export default function ApplyRule({ open, setOpen }) {
               <div className="flex items-center justify-normal gap-5 mt-5">
                 <div>Repeat On</div>
                 <div className="flex items-center justify-start gap-5">
-                  {["s", "m", "t", "w", "t", "f", "s"].map((item, index) => (
+                  {ruleData.repeats_on.map((item, index) => (
                     <button
+                      onClick={() =>
+                        setRuleData({
+                          ...ruleData,
+                          repeats_on: [
+                            ...ruleData.repeats_on.map((day) => {
+                              if (day.day === item.day) {
+                                return { ...day, isSelected: !day.isSelected };
+                              } else return day;
+                            }),
+                          ],
+                        })
+                      }
                       key={index}
                       type="button"
-                      className="rounded-full w-10 h-10 capitalize bg-indigo-600 flex items-center justify-center text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                      className={`rounded-full w-10 h-10 capitalize ${
+                        item.isSelected ? "bg-indigo-600" : "bg-white"
+                      } flex items-center justify-center ${
+                        item.isSelected ? "text-white" : "text-black"
+                      } shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600`}
                     >
-                      <div>{item}</div>
+                      <div>{item.day.charAt(0)}</div>
                     </button>
                   ))}
                 </div>
               </div>
+            </div>
+            <div className="w-full flex items-center justify-end mt-5">
+              <Button
+                variant="contained"
+                onClick={() => {
+                  handleApply(ruleData);
+                }}
+                sx={{
+                  // position: "absolute",
+                  // bottom: 16,
+                  // right: 16,
+                  width: "100px",
+                  height: "40px",
+                }}
+              >
+                Apply
+              </Button>
             </div>
           </DialogPanel>
         </div>

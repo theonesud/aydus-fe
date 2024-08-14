@@ -1,14 +1,20 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import Layout from '@/components/Layout';
-import { FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material';
-import { getStopLoss, quadrantDataApi } from '@/utils/api'; // Adjust the path as needed
+"use client";
+import React, { useState, useEffect } from "react";
+import Layout from "@/components/Layout";
+import {
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  TextField,
+} from "@mui/material";
+import { getStopLoss, quadrantDataApi } from "@/utils/api"; // Adjust the path as needed
 
 const Home = () => {
-  const [xAxisMetric, setXAxisMetric] = useState('price');
-  const [yAxisMetric, setYAxisMetric] = useState('price');
-  const [xAxisValue, setXAxisValue] = useState('100');
-  const [yAxisValue, setYAxisValue] = useState('200');
+  const [xAxisMetric, setXAxisMetric] = useState("price");
+  const [yAxisMetric, setYAxisMetric] = useState("price");
+  const [xAxisValue, setXAxisValue] = useState("100");
+  const [yAxisValue, setYAxisValue] = useState("200");
   const [quadrantData, setQuadrantData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -17,7 +23,7 @@ const Home = () => {
   const summaryData = {
     title: "Stop Loss",
     description: "Potential Wasted Ad Spend",
-    details: "RS: 104,238/-"
+    details: "RS: 104,238/-",
   };
 
   const handleXAxisMetricChange = (event) => {
@@ -40,29 +46,30 @@ const Home = () => {
     setLoading(true);
     setError(null);
     const data = {
-      from_date: "2024-01-01",  // Assuming these dates are constant; adjust as necessary
+      from_date: "2024-01-01", // Assuming these dates are constant; adjust as necessary
       to_date: "2024-12-31",
-    }
-    getStopLoss(data,
+    };
+    getStopLoss(
+      data,
       (response) => {
         setStopLossData(response.data);
-        console.log(response.data,'stoploss');
+        console.log(response.data, "stoploss");
         setLoading(false);
       },
       (error) => {
-        console.error('Failed to fetch stop loss data:', error);
-        setError('Failed to load data');
+        console.error("Failed to fetch stop loss data:", error);
+        setError("Failed to load data");
         setLoading(false);
       }
     );
-  }
+  };
 
   const fetchQuadrantData = () => {
     setLoading(true);
     setError(null);
 
     const postData = {
-      from_date: "2022-01-01",  // Assuming these dates are constant; adjust as necessary
+      from_date: "2022-01-01", // Assuming these dates are constant; adjust as necessary
       to_date: "2022-12-31",
       x_col: xAxisMetric,
       x_val: xAxisValue,
@@ -74,17 +81,33 @@ const Home = () => {
       postData,
       (response) => {
         const formattedData = [
-          { label: 'High Potential Products', value: `${response.data.high_potential.percent}%`, count: response.data.high_potential.number },
-          { label: 'Top Performing Products', value: `${response.data.top_performing.percent}%`, count: response.data.top_performing.number },
-          { label: 'Low Discovery Products', value: `${response.data.low_discovery.percent}%`, count: response.data.low_discovery.number },
-          { label: 'Non Performing Products', value: `${response.data.non_performing.percent}%`, count: response.data.non_performing.number },
+          {
+            label: "High Potential Products",
+            value: `${response.data.high_potential.percent}%`,
+            count: response.data.high_potential.number,
+          },
+          {
+            label: "Top Performing Products",
+            value: `${response.data.top_performing.percent}%`,
+            count: response.data.top_performing.number,
+          },
+          {
+            label: "Low Discovery Products",
+            value: `${response.data.low_discovery.percent}%`,
+            count: response.data.low_discovery.number,
+          },
+          {
+            label: "Non Performing Products",
+            value: `${response.data.non_performing.percent}%`,
+            count: response.data.non_performing.number,
+          },
         ];
         setQuadrantData(formattedData);
         setLoading(false);
       },
       (error) => {
-        console.error('Failed to fetch quadrant data:', error);
-        setError('Failed to load data');
+        console.error("Failed to fetch quadrant data:", error);
+        setError("Failed to load data");
         setLoading(false);
       }
     );
@@ -92,21 +115,33 @@ const Home = () => {
 
   useEffect(() => {
     fetchQuadrantData();
-    fetchStopLoss()
+    fetchStopLoss();
   }, [xAxisMetric, yAxisMetric, xAxisValue, yAxisValue]); // Fetch when inputs change
 
   return (
     <Layout>
       <div className="border-b border-gray-200 pb-5">
-        <h3 style={{
-          fontSize: '24px',
-          fontWeight: 'bold',
-          margin: '20px 0'
-        }} className=" leading-6 text-gray-900">Dashboard</h3>
+        <h3
+          style={{
+            fontSize: "24px",
+            fontWeight: "bold",
+            margin: "20px 0",
+          }}
+          className=" leading-6 text-gray-900"
+        >
+          Dashboard
+        </h3>
       </div>
 
       {/* Dropdowns Section */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', marginTop: '20px' }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: "20px",
+          marginTop: "20px",
+        }}
+      >
         <FormControl variant="outlined" style={{ minWidth: 250 }}>
           <InputLabel id="x-axis-metric-label">X-Axis Metric</InputLabel>
           <Select
@@ -165,47 +200,77 @@ const Home = () => {
       ) : (
         <div>
           {/* Quadrants Section */}
-          <div style={{
-            margin: '10px',
-            alignItems: 'center',
-            boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-            padding: '10px',
-            borderRadius: '10px',
-            backgroundColor: '#fff',
-          }}>
-            <div style={{
-              fontSize: '20px',
-              fontWeight: 'bold',
-            }}>
+          <div
+            style={{
+              margin: "10px",
+              alignItems: "center",
+              boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+              padding: "10px",
+              borderRadius: "10px",
+              backgroundColor: "#fff",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "20px",
+                fontWeight: "bold",
+              }}
+            >
               Quadrant View
             </div>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-              maxWidth: '800px',
-              margin: '0 auto'
-            }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                flexWrap: "wrap",
+                maxWidth: "800px",
+                margin: "0 auto",
+              }}
+            >
               {quadrantData.map((data, index) => (
-                <div key={index} style={{
-                  flex: '1 1 50%',
-                  maxWidth: 'calc(50% - 20px)',
-                  margin: '10px',
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                  padding: '10px',
-                  borderRadius: '5px',
-                  backgroundColor: '#fff',
-                }}>
-                  <div style={{ width: '10px', height: '70px', backgroundColor: COLORS[index % 4] }}></div>
-                  <div style={{ marginLeft: '20px', width: '100%' }}>
-                    <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{data.value}</div>
+                <div
+                  key={index}
+                  style={{
+                    flex: "1 1 50%",
+                    maxWidth: "calc(50% - 20px)",
+                    margin: "10px",
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                    padding: "10px",
+                    borderRadius: "5px",
+                    backgroundColor: "#fff",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "10px",
+                      height: "70px",
+                      backgroundColor: COLORS[index % 4],
+                    }}
+                  ></div>
+                  <div style={{ marginLeft: "20px", width: "100%" }}>
+                    <div style={{ fontSize: "20px", fontWeight: "bold" }}>
+                      {data.value}
+                    </div>
                     <div>{data.label}</div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
                       ({data.count})
-                      <div style={{ color: '#007bff', border: 'none', padding: '5px 10px', cursor: 'pointer' }}>
+                      <div
+                        style={{
+                          color: "#007bff",
+                          border: "none",
+                          padding: "5px 10px",
+                          cursor: "pointer",
+                        }}
+                      >
                         View Products
                       </div>
                     </div>
@@ -217,35 +282,43 @@ const Home = () => {
           <div className="border-b border-gray-200 pb-5"></div>
           <div
             style={{
-              margin: '10px',
-              alignItems: 'center',
-              boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-              padding: '10px',
-              borderRadius: '10px',
-              backgroundColor: '#fff',
-              marginTop: '20px',
+              margin: "10px",
+              alignItems: "center",
+              boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+              padding: "10px",
+              borderRadius: "10px",
+              backgroundColor: "#fff",
+              marginTop: "20px",
             }}
           >
-            <div style={{
-              fontSize: '20px',
-              fontWeight: 'bold',
-            }}>
+            <div
+              style={{
+                fontSize: "20px",
+                fontWeight: "bold",
+              }}
+            >
               Stop Loss
             </div>
             {/* Stop Loss Summary Card */}
-            <div style={{
-              marginTop: '20px',
-              padding: '20px',
-              backgroundColor: '#f9f9f9',
-              borderRadius: '5px',
-              boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-              width: '50%',
-              margin: '20px auto',
-              textAlign: 'left'
-            }}>
-              <h3 style={{ fontSize: '22px', fontWeight: 'bold' }}>{summaryData.title}</h3>
-              <p style={{ fontSize: '18px' }}>{summaryData.description}</p>
-              <p style={{ fontSize: '16px', color: '#666' }}>{stopLossData.cash_saved}/-</p>
+            <div
+              style={{
+                marginTop: "20px",
+                padding: "20px",
+                backgroundColor: "#f9f9f9",
+                borderRadius: "5px",
+                boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                width: "50%",
+                margin: "20px auto",
+                textAlign: "left",
+              }}
+            >
+              <h3 style={{ fontSize: "22px", fontWeight: "bold" }}>
+                {summaryData.title}
+              </h3>
+              <p style={{ fontSize: "18px" }}>{summaryData.description}</p>
+              <p style={{ fontSize: "16px", color: "#666" }}>
+                {stopLossData.cash_saved}/-
+              </p>
             </div>
           </div>
         </div>
@@ -254,6 +327,6 @@ const Home = () => {
   );
 };
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
 export default Home;
