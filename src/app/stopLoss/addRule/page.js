@@ -8,36 +8,39 @@ import { saveAs } from "file-saver";
 import { Stack, Chip } from "@mui/material";
 import AddStopLossRuleModal from "@/components/AddStopLossRuleModal";
 import ApplyRule from "@/components/ApplyRuleModal";
+import StopLossFilterComponent from "@/components/StopLossFilterComponent";
+import { fetchStopLossData } from "@/utils/api";
 
 const AddRule = () => {
   const [filterText, setFilterText] = useState("");
   const [productsData, setProductsData] = useState([]);
+  // console.log(productsData, "productsData");
   const [appliedConditions, setAppliedConditions] = useState([]); // State to hold applied conditions
   const [applyRuleOpen, setApplyRuleOpen] = useState(false);
 
   // Fetch and parse CSV on mount
   useEffect(() => {
-    fetch("/products.csv") // Ensure the CSV is in the correct directory
-      .then((response) => response.text())
-      .then((csvData) => {
-        parse(csvData, {
-          header: true,
-          skipEmptyLines: true,
-          complete: (results) => {
-            const formattedData = results.data.map((row) => {
-              const formattedRow = {};
-              Object.keys(row).forEach((key) => {
-                const cleanKey = key.trim().replace(/[().% ]+/g, "");
-                formattedRow[cleanKey] = row[key];
-              });
-              return formattedRow;
-            });
-            setProductsData(formattedData);
-          },
-        });
-      })
-      .catch((err) => console.error("Failed to load CSV data:", err));
+    fetchProductsApiCall(); // Call the API on mount
   }, []);
+
+  const fetchProductsApiCall = async (inputData = {}) => {
+    try {
+      // Call the API
+      await fetchStopLossData(
+        inputData,
+        (response) => {
+          console.log("API Response:", response.data); // Log the response
+          // Optionally update productsData with the API response
+          setProductsData(response.data.data || []);
+        },
+        (error) => {
+          console.error("API Error:", error);
+        }
+      );
+    } catch (error) {
+      console.error("Failed to call API:", error);
+    }
+  };
 
   const handleDownload = () => {
     const filteredData = productsData.filter(
@@ -65,7 +68,14 @@ const AddRule = () => {
           {/* <h1 className="text-3xl font-semibold leading-16 text-gray-900 pb-10 pt-16">
           Product Insights
         </h1> */}
-          <FilterComponent
+          {/* <FilterComponent
+            onFilterChange={(event) => setFilterText(event.target.value)}
+            onDownload={handleDownload}
+            onApplyConditions={handleApplyConditions} // pass the handler
+            handleOpen={() => setOpen(true)}
+            onApplyClick={() => setApplyRuleOpen(true)}
+          /> */}
+          <StopLossFilterComponent
             onFilterChange={(event) => setFilterText(event.target.value)}
             onDownload={handleDownload}
             onApplyConditions={handleApplyConditions} // pass the handler
@@ -86,18 +96,8 @@ const AddRule = () => {
               />
             ))}
           </Stack>
-          <AnalyticsTable
-            data={productsData.filter(
-              (product) =>
-                product.ProductName.toLowerCase().includes(
-                  filterText.toLowerCase()
-                ) ||
-                product.ProductSku.toLowerCase().includes(
-                  filterText.toLowerCase()
-                )
-            )}
-          />
-          <AddStopLossRuleModal open={open} setOpen={setOpen} />
+          <AnalyticsTable productsData={productsData} />
+          {/* <AddStopLossRuleModal open={open} setOpen={setOpen} /> */}
           <ApplyRule open={applyRuleOpen} setOpen={setApplyRuleOpen} />
         </div>
       </Layout>
