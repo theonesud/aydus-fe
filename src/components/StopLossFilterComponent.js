@@ -23,13 +23,15 @@ import DeleteIcon from "@mui/icons-material/Delete";
 const StopLossFilterComponent = ({
   onFilterChange,
   onDateRangeChange,
-  dateRange,
+  // dateRange,
   onApplyConditions,
   onDownload,
   handleOpen,
   onApplyClick,
   handleClickOpenFunction,
 }) => {
+  const [dateRange, setDateRange] = useState(null);
+  console.log(dateRange, "skdlkfjl");
   const [exclusionDetails, setExclusionDetails] = useState({
     metrics_filter: [],
     attribute_filter: [],
@@ -39,16 +41,42 @@ const StopLossFilterComponent = ({
     attribute_filter: [],
   });
   const [open, setOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState("metrics");
+  const [selectedOption, setSelectedOption] = useState({
+    exclusionDetails: "metrics",
+    inclusionDetails: "metrics",
+  });
   const [selectedMetrics, setSelectedMetrics] = useState({
     exclusionDetails: false,
-    inclusionDetails: false
+    inclusionDetails: false,
   });
-  const [isMetApplied, setIsMetApplied] = useState(false);
-  const [isAtrApplied, setIsAtrApplied] = useState(false);
-  const [selectedAttributes, setSelectedAttributes] = useState(false);
-  const [conditions, setConditions] = useState([]);
-  const [newCondition, setNewCondition] = useState({
+  const [isMetApplied, setIsMetApplied] = useState({
+    exclusionDetails: false,
+    inclusionDetails: false,
+  });
+  const [isAtrApplied, setIsAtrApplied] = useState({
+    exclusionDetails: false,
+    inclusionDetails: false,
+  });
+  const [selectedAttributes, setSelectedAttributes] = useState({
+    exclusionDetails: false,
+    inclusionDetails: false,
+  });
+  const [metricsConditions, setMetricsConditions] = useState({
+    exclusionDetails: [],
+    inclusionDetails: [],
+  });
+  const [attributeConditions, setAttributeConditions] = useState({
+    exclusionDetails: [],
+    inclusionDetails: [],
+  });
+  console.log(selectedMetrics, selectedAttributes, "skfjdsljf");
+  const [newMetricsCondition, setNewMetricsCondition] = useState({
+    field: "",
+    operator: "",
+    value: "",
+    conjunction: "AND", // Default conjunction
+  });
+  const [newAttributesCondition, setNewAttributesCondition] = useState({
     field: "",
     operator: "",
     value: "",
@@ -69,38 +97,120 @@ const StopLossFilterComponent = ({
     setEditingIndex(null);
   };
 
-  const handleOptionSelect = (option) => {
-    setSelectedOption(option);
+  const handleOptionSelect = (type, option) => {
+    setSelectedOption({ ...selectedOption, [type]: option });
   };
 
   const handleMetricOpen = (type) => {
-    setSelectedMetrics({...selectedMetrics, [type]: true});
-    setIsMetApplied(true);
+    setSelectedMetrics({ ...selectedMetrics, [type]: true });
+    setIsMetApplied({ ...isMetApplied, [type]: true });
   };
 
-  const handleAtrOpen = () => {
-    setSelectedAttributes(true);
-    setIsAtrApplied(true);
+  const handleAtrOpen = (type) => {
+    setSelectedAttributes({ ...selectedAttributes, [type]: true });
+    setIsAtrApplied({
+      ...isAtrApplied,
+      [type]: true,
+    });
   };
 
-  const addCondition = () => {
-    setConditions([...conditions, newCondition]);
-    setNewCondition({ field: "", operator: "", value: "", conjunction: "AND" }); // Reset with default conjunction
+  // const addCondition = (type) => {
+  //   setConditions({
+  //     ...conditions,
+  //     [type]: [...conditions[type], newCondition],
+  //   });
+  //   setNewCondition({ field: "", operator: "", value: "", conjunction: "AND" }); // Reset with default conjunction
+  // };
+
+  // const deleteCondition = (index, type) => {
+  //   setConditions({
+  //     ...conditions,
+  //     [type]: conditions[type].filter((_, i) => i !== index),
+  //   });
+  // };
+
+  // const handleChange = (prop, index, type) => (event) => {
+  //   if (index !== undefined) {
+  //     // Editing existing condition
+  //     const updatedConditions = [...conditions[type]];
+  //     updatedConditions[index][prop] = event.target.value;
+  //     setConditions({ ...conditions, [type]: updatedConditions });
+  //   } else {
+  //     // Updating new condition form
+  //     setNewCondition({ ...newCondition, [prop]: event.target.value });
+  //   }
+  // };
+
+  const addMetricsCondition = (type) => {
+    setMetricsConditions({
+      ...metricsConditions,
+      [type]: [...metricsConditions[type], newMetricsCondition],
+    });
+    setNewMetricsCondition({
+      field: "",
+      operator: "",
+      value: "",
+      conjunction: "AND",
+    }); // Reset with default conjunction
   };
 
-  const deleteCondition = (index) => {
-    setConditions(conditions.filter((_, i) => i !== index));
+  const deleteMetricsCondition = (index, type) => {
+    setMetricsConditions({
+      ...metricsConditions,
+      [type]: metricsConditions[type].filter((_, i) => i !== index),
+    });
   };
 
-  const handleChange = (prop, index) => (event) => {
+  const handleMetricsChange = (prop, index, type) => (event) => {
     if (index !== undefined) {
       // Editing existing condition
-      const updatedConditions = [...conditions];
+      const updatedConditions = [...metricsConditions[type]];
       updatedConditions[index][prop] = event.target.value;
-      setConditions(updatedConditions);
+      setMetricsConditions({ ...metricsConditions, [type]: updatedConditions });
     } else {
       // Updating new condition form
-      setNewCondition({ ...newCondition, [prop]: event.target.value });
+      setNewMetricsCondition({
+        ...newMetricsCondition,
+        [prop]: event.target.value,
+      });
+    }
+  };
+
+  const addAttributesCondition = (type) => {
+    setAttributeConditions({
+      ...attributeConditions,
+      [type]: [...attributeConditions[type], newAttributesCondition],
+    });
+    setNewAttributesCondition({
+      field: "",
+      operator: "",
+      value: "",
+      conjunction: "AND",
+    }); // Reset with default conjunction
+  };
+
+  const deleteAttributesCondition = (index, type) => {
+    setAttributeConditions({
+      ...attributeConditions,
+      [type]: attributeConditions[type].filter((_, i) => i !== index),
+    });
+  };
+
+  const handleAttributesChange = (prop, index, type) => (event) => {
+    if (index !== undefined) {
+      // Editing existing condition
+      const updatedConditions = [...attributeConditions[type]];
+      updatedConditions[index][prop] = event.target.value;
+      setAttributeConditions({
+        ...attributeConditions,
+        [type]: updatedConditions,
+      });
+    } else {
+      // Updating new condition form
+      setNewAttributesCondition({
+        ...newAttributesCondition,
+        [prop]: event.target.value,
+      });
     }
   };
 
@@ -112,7 +222,7 @@ const StopLossFilterComponent = ({
     setEditingIndex(null);
   };
   const handleApply = () => {
-    onApplyConditions(conditions); // send conditions to parent
+    onApplyConditions(metricsConditions, attributeConditions); // send conditions to parent
     handleClose();
   };
   const commonTypographyStyles = {
@@ -187,6 +297,16 @@ const StopLossFilterComponent = ({
     "TransactionRate",
   ];
 
+  const attributeFieldOptions = [
+    "ProductSKU",
+    "VariantSKU",
+    "ProductName",
+    "Category",
+    "Collections",
+    "DaysAdded",
+    "PagePath",
+  ];
+
   const operators = [
     { value: "==", label: "Equals" },
     { value: "!=", label: "Not Equals" },
@@ -195,6 +315,8 @@ const StopLossFilterComponent = ({
     { value: ">=", label: "Greater Than or Equals" },
     { value: "<=", label: "Less Than or Equals" },
   ];
+
+  // console.log(selectedMetrics, "selectedMetrics");
 
   return (
     <Box display="flex" alignItems="center" gap={2}>
@@ -235,19 +357,30 @@ const StopLossFilterComponent = ({
           id="date-range-select"
           value={dateRange}
           label="Date Range"
-          onChange={onDateRangeChange}
+          onChange={(e) => {
+            onDateRangeChange(e);
+            setDateRange(e.target.value);
+          }}
           sx={{
             backgroundColor: "white",
             boxShadow: "10px 10px 100px 0px rgba(16, 28, 45, 0.08)",
           }}
         >
-          <MenuItem value={{ conunt: 3, type: "days" }}>Last 3 Days</MenuItem>
-          <MenuItem value={{ conunt: 7, type: "days" }}>Last 7 Days</MenuItem>
-          <MenuItem value={{ conunt: 1, type: "months" }}>Last Month</MenuItem>
-          <MenuItem value={{ conunt: 6, type: "months" }}>
+          <MenuItem value={JSON.stringify({ count: 3, type: "days" })}>
+            Last 3 Days
+          </MenuItem>
+          <MenuItem value={JSON.stringify({ count: 7, type: "days" })}>
+            Last 7 Days
+          </MenuItem>
+          <MenuItem value={JSON.stringify({ count: 1, type: "months" })}>
+            Last Month
+          </MenuItem>
+          <MenuItem value={JSON.stringify({ count: 6, type: "months" })}>
             Last 6 Months
           </MenuItem>
-          <MenuItem value={{ conunt: 1, type: "year" }}>Last Year</MenuItem>
+          <MenuItem value={JSON.stringify({ count: 1, type: "year" })}>
+            Last Year
+          </MenuItem>
         </Select>
       </FormControl>
       {onApplyClick && (
@@ -288,7 +421,7 @@ const StopLossFilterComponent = ({
             py: 7,
             borderRadius: 1,
             display: "flex",
-            overflow: "hidden",
+            overflow: "auto",
             flexDirection: "column",
             // gap:
           }}
@@ -304,6 +437,8 @@ const StopLossFilterComponent = ({
           >
             <CloseIcon />
           </IconButton>
+
+          {/* Exclusion details */}
           <div
             style={{ marginBottom: "20px", fontSize: "24px", fontWeight: 500 }}
           >
@@ -322,31 +457,39 @@ const StopLossFilterComponent = ({
             >
               <Typography
                 variant="h6"
-                onClick={() => handleOptionSelect("metrics")}
+                onClick={() =>
+                  handleOptionSelect("exclusionDetails", "metrics")
+                }
                 className={`font-sans `}
                 sx={{
                   ...commonTypographyStyles,
-                  ...(selectedOption === "metrics" ? selectedStyles : {}),
+                  ...(selectedOption.exclusionDetails === "metrics"
+                    ? selectedStyles
+                    : {}),
                 }}
               >
                 Metrics
-                {isMetApplied && (
+                {isMetApplied.exclusionDetails && (
                   <span style={appliedBadgeStyles}>Applied</span>
                 )}
               </Typography>
 
               <Typography
                 variant="h6"
-                onClick={() => handleOptionSelect("attributes")}
+                onClick={() =>
+                  handleOptionSelect("exclusionDetails", "attributes")
+                }
                 className={`font-sans `}
                 sx={{
                   ...commonTypographyStyles,
-                  ...(selectedOption === "attributes" ? selectedStyles : {}),
+                  ...(selectedOption.exclusionDetails === "attributes"
+                    ? selectedStyles
+                    : {}),
                   marginBottom: 0, // To remove margin-bottom from the last item
                 }}
               >
                 Attributes
-                {isAtrApplied && (
+                {isAtrApplied.exclusionDetails && (
                   <span style={appliedBadgeStyles}>Applied</span>
                 )}
               </Typography>
@@ -354,7 +497,7 @@ const StopLossFilterComponent = ({
 
             {/* Main Content */}
             <Box sx={{ flexGrow: 1, p: 2 }}>
-              {selectedOption === "metrics" && (
+              {selectedOption.exclusionDetails === "metrics" && (
                 <div>
                   <Typography variant="h5">Add a metric filter</Typography>
                   <div
@@ -380,10 +523,13 @@ const StopLossFilterComponent = ({
                         <IconButton
                           onClick={() => {
                             setSelectedMetrics({
-                                ...selectedAttributes,
-                                exclusionDetails: false
+                              ...selectedAttributes,
+                              exclusionDetails: false,
                             });
-                            setIsMetApplied(false);
+                            setIsMetApplied({
+                              ...isMetApplied,
+                              exclusionDetails: false,
+                            });
                           }}
                           sx={{
                             position: "absolute",
@@ -393,57 +539,78 @@ const StopLossFilterComponent = ({
                         >
                           <CloseIcon />
                         </IconButton>
-                        {conditions.map((condition, index) => (
-                          <div
-                            key={index}
-                            style={{
-                              display: "flex",
-                              gap: 10,
-                              marginBottom: 10,
-                            }}
-                          >
-                            <FormControl fullWidth>
-                              <InputLabel>Select Field</InputLabel>
-                              <Select
-                                value={condition.field}
-                                label="Select Field"
-                                onChange={handleChange("field", index)}
+                        {metricsConditions.exclusionDetails.map(
+                          (condition, index) => (
+                            <div
+                              key={index}
+                              style={{
+                                display: "flex",
+                                gap: 10,
+                                marginBottom: 10,
+                              }}
+                            >
+                              <FormControl fullWidth>
+                                <InputLabel>Select Field</InputLabel>
+                                <Select
+                                  value={condition.field}
+                                  label="Select Field"
+                                  onChange={handleMetricsChange(
+                                    "field",
+                                    index,
+                                    "exclusionDetails"
+                                  )}
+                                >
+                                  {fieldOptions.map((option) => (
+                                    <MenuItem key={option} value={option}>
+                                      {option}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                              <FormControl fullWidth>
+                                <InputLabel>Select Operator</InputLabel>
+                                <Select
+                                  value={condition.operator}
+                                  label="Select Operator"
+                                  onChange={handleMetricsChange(
+                                    "operator",
+                                    index,
+                                    "exclusionDetails"
+                                  )}
+                                >
+                                  {operators.map((option) => (
+                                    <MenuItem
+                                      key={option.value}
+                                      value={option.value}
+                                    >
+                                      {option.label}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                              <TextField
+                                fullWidth
+                                label="Enter Value"
+                                value={condition.value}
+                                onChange={handleMetricsChange(
+                                  "value",
+                                  index,
+                                  "exclusionDetails"
+                                )}
+                              />
+                              <IconButton
+                                onClick={() =>
+                                  deleteMetricsCondition(
+                                    index,
+                                    "exclusionDetails"
+                                  )
+                                }
                               >
-                                {fieldOptions.map((option) => (
-                                  <MenuItem key={option} value={option}>
-                                    {option}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
-                            <FormControl fullWidth>
-                              <InputLabel>Select Operator</InputLabel>
-                              <Select
-                                value={condition.operator}
-                                label="Select Operator"
-                                onChange={handleChange("operator", index)}
-                              >
-                                {operators.map((option) => (
-                                  <MenuItem
-                                    key={option.value}
-                                    value={option.value}
-                                  >
-                                    {option.label}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
-                            <TextField
-                              fullWidth
-                              label="Enter Value"
-                              value={condition.value}
-                              onChange={handleChange("value", index)}
-                            />
-                            <IconButton onClick={() => deleteCondition(index)}>
-                              <DeleteIcon />
-                            </IconButton>
-                          </div>
-                        ))}
+                                <DeleteIcon />
+                              </IconButton>
+                            </div>
+                          )
+                        )}
                         <div sx={{ mb: 2 }}>Add Condition</div>
                         <Box
                           sx={{
@@ -452,13 +619,13 @@ const StopLossFilterComponent = ({
                             mb: 2,
                           }}
                         >
-                          {conditions.length > 0 && (
+                          {metricsConditions.exclusionDetails.length > 0 && (
                             <FormControl fullWidth>
                               <InputLabel>Select Conjunction</InputLabel>
                               <Select
-                                value={newCondition.conjunction}
+                                value={newMetricsCondition.conjunction}
                                 label="Select Conjunction"
-                                onChange={handleChange("conjunction")}
+                                onChange={handleMetricsChange("conjunction")}
                               >
                                 <MenuItem value="AND">AND</MenuItem>
                                 <MenuItem value="OR">OR</MenuItem>
@@ -469,9 +636,9 @@ const StopLossFilterComponent = ({
                           <FormControl fullWidth>
                             <InputLabel>Select Field</InputLabel>
                             <Select
-                              value={newCondition.field}
+                              value={newMetricsCondition.field}
                               label="Select Field"
-                              onChange={handleChange("field")}
+                              onChange={handleMetricsChange("field")}
                             >
                               {fieldOptions.map((option) => (
                                 <MenuItem key={option} value={option}>
@@ -483,9 +650,9 @@ const StopLossFilterComponent = ({
                           <FormControl fullWidth>
                             <InputLabel>Select Operator</InputLabel>
                             <Select
-                              value={newCondition.operator}
+                              value={newMetricsCondition.operator}
                               label="Select Operator"
-                              onChange={handleChange("operator")}
+                              onChange={handleMetricsChange("operator")}
                             >
                               {operators.map((option) => (
                                 <MenuItem
@@ -500,8 +667,8 @@ const StopLossFilterComponent = ({
                           <TextField
                             fullWidth
                             label="Enter Value"
-                            value={newCondition.value}
-                            onChange={handleChange("value")}
+                            value={newMetricsCondition.value}
+                            onChange={handleMetricsChange("value")}
                           />
                         </Box>
                         <div
@@ -515,88 +682,108 @@ const StopLossFilterComponent = ({
                           <Button
                             variant="contained"
                             startIcon={<AddIcon />}
-                            onClick={addCondition}
+                            onClick={() =>
+                              addMetricsCondition("exclusionDetails")
+                            }
                           >
                             Add Condition
                           </Button>
                         </div>
                       </Box>
                       <Stack direction="row" spacing={1} sx={{ mb: 2, mt: 4 }}>
-                        {conditions.map((condition, index) => (
-                          <React.Fragment key={index}>
-                            {index > 0 && (
-                              <Chip
-                                label={`${condition.conjunction}`}
-                                color="primary"
-                                variant="outlined"
-                                sx={{
-                                  fontSize: 14,
-                                }}
-                              />
-                            )}
-
-                            {editingIndex === index ? (
-                              <Box sx={{ display: "flex", gap: 1 }}>
-                                <FormControl size="small" fullWidth>
-                                  <InputLabel>Select Field</InputLabel>
-                                  <Select
-                                    value={condition.field}
-                                    label="Select Field"
-                                    onChange={handleChange("field", index)}
-                                  >
-                                    {fieldOptions.map((option) => (
-                                      <MenuItem key={option} value={option}>
-                                        {option}
-                                      </MenuItem>
-                                    ))}
-                                  </Select>
-                                </FormControl>
-                                <FormControl size="small" fullWidth>
-                                  <InputLabel>Select Operator</InputLabel>
-                                  <Select
-                                    value={condition.operator}
-                                    label="Select Operator"
-                                    onChange={handleChange("operator", index)}
-                                  >
-                                    {operators.map((option) => (
-                                      <MenuItem
-                                        key={option.value}
-                                        value={option.value}
-                                      >
-                                        {option.label}
-                                      </MenuItem>
-                                    ))}
-                                  </Select>
-                                </FormControl>
-                                <TextField
-                                  size="small"
-                                  value={condition.value}
-                                  onChange={handleChange("value", index)}
+                        {metricsConditions.exclusionDetails.map(
+                          (condition, index) => (
+                            <React.Fragment key={index}>
+                              {index > 0 && (
+                                <Chip
+                                  label={`${condition.conjunction}`}
+                                  color="primary"
+                                  variant="outlined"
+                                  sx={{
+                                    fontSize: 14,
+                                  }}
                                 />
-                                <IconButton onClick={stopEditingCondition}>
-                                  <CloseIcon />
-                                </IconButton>
-                              </Box>
-                            ) : (
-                              <Chip
-                                label={`${condition.field} ${condition.operator} ${condition.value}`}
-                                onClick={() => startEditingCondition(index)}
-                                onDelete={() => deleteCondition(index)}
-                                color="primary"
-                                variant="outlined"
-                                sx={{
-                                  fontSize: 14,
-                                }}
-                              />
-                            )}
-                          </React.Fragment>
-                        ))}
+                              )}
+
+                              {editingIndex === index ? (
+                                <Box sx={{ display: "flex", gap: 1 }}>
+                                  <FormControl size="small" fullWidth>
+                                    <InputLabel>Select Field</InputLabel>
+                                    <Select
+                                      value={condition.field}
+                                      label="Select Field"
+                                      onChange={handleMetricsChange(
+                                        "field",
+                                        index
+                                      )}
+                                    >
+                                      {fieldOptions.map((option) => (
+                                        <MenuItem key={option} value={option}>
+                                          {option}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                  <FormControl size="small" fullWidth>
+                                    <InputLabel>Select Operator</InputLabel>
+                                    <Select
+                                      value={condition.operator}
+                                      label="Select Operator"
+                                      onChange={handleMetricsChange(
+                                        "operator",
+                                        index,
+                                        "exclusionDetails"
+                                      )}
+                                    >
+                                      {operators.map((option) => (
+                                        <MenuItem
+                                          key={option.value}
+                                          value={option.value}
+                                        >
+                                          {option.label}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                  <TextField
+                                    size="small"
+                                    value={condition.value}
+                                    onChange={handleMetricsChange(
+                                      "value",
+                                      index,
+                                      "exclusionDetails"
+                                    )}
+                                  />
+                                  <IconButton onClick={stopEditingCondition}>
+                                    <CloseIcon />
+                                  </IconButton>
+                                </Box>
+                              ) : (
+                                <Chip
+                                  label={`${condition.field} ${condition.operator} ${condition.value}`}
+                                  onClick={() => startEditingCondition(index)}
+                                  onDelete={() =>
+                                    deleteMetricsCondition(
+                                      index,
+                                      "exclusionDetails"
+                                    )
+                                  }
+                                  color="primary"
+                                  variant="outlined"
+                                  sx={{
+                                    fontSize: 14,
+                                  }}
+                                />
+                              )}
+                            </React.Fragment>
+                          )
+                        )}
                       </Stack>
                     </div>
                   ) : (
                     <Button
                       variant="outlined"
-                      onClick={handleMetricOpen}
+                      onClick={() => handleMetricOpen("exclusionDetails")}
                       sx={{
                         backgroundColor: "white",
                         color: "gray.900",
@@ -620,7 +807,7 @@ const StopLossFilterComponent = ({
                   )}
                 </div>
               )}
-              {selectedOption === "attributes" && (
+              {selectedOption.exclusionDetails === "attributes" && (
                 <div>
                   <Typography variant="h5">Add an attribute filter</Typography>
                   <div
@@ -631,7 +818,7 @@ const StopLossFilterComponent = ({
                   >
                     Common attributes include: SKU id, MRP, Price
                   </div>
-                  {selectedMetrics ? (
+                  {selectedAttributes.exclusionDetails ? (
                     <div>
                       <Box
                         sx={{
@@ -645,8 +832,14 @@ const StopLossFilterComponent = ({
                       >
                         <IconButton
                           onClick={() => {
-                            setSelectedMetrics(false);
-                            setIsMetApplied(false);
+                            setSelectedAttributes({
+                              ...selectedAttributes,
+                              exclusionDetails: false,
+                            });
+                            setIsAtrApplied({
+                              ...isAtrApplied,
+                              exclusionDetails: false,
+                            });
                           }}
                           sx={{
                             position: "absolute",
@@ -656,6 +849,78 @@ const StopLossFilterComponent = ({
                         >
                           <CloseIcon />
                         </IconButton>
+                        {attributeConditions.exclusionDetails.map(
+                          (condition, index) => (
+                            <div
+                              key={index}
+                              style={{
+                                display: "flex",
+                                gap: 10,
+                                marginBottom: 10,
+                              }}
+                            >
+                              <FormControl fullWidth>
+                                <InputLabel>Select Field</InputLabel>
+                                <Select
+                                  value={condition.field}
+                                  label="Select Field"
+                                  onChange={handleAttributesChange(
+                                    "field",
+                                    index,
+                                    "exclusionDetails"
+                                  )}
+                                >
+                                  {attributeFieldOptions.map((option) => (
+                                    <MenuItem key={option} value={option}>
+                                      {option}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                              <FormControl fullWidth>
+                                <InputLabel>Select Operator</InputLabel>
+                                <Select
+                                  value={condition.operator}
+                                  label="Select Operator"
+                                  onChange={handleAttributesChange(
+                                    "operator",
+                                    index,
+                                    "exclusionDetails"
+                                  )}
+                                >
+                                  {operators.map((option) => (
+                                    <MenuItem
+                                      key={option.value}
+                                      value={option.value}
+                                    >
+                                      {option.label}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                              <TextField
+                                fullWidth
+                                label="Enter Value"
+                                value={condition.value}
+                                onChange={handleAttributesChange(
+                                  "value",
+                                  index,
+                                  "exclusionDetails"
+                                )}
+                              />
+                              <IconButton
+                                onClick={() =>
+                                  deleteAttributesCondition(
+                                    index,
+                                    "exclusionDetails"
+                                  )
+                                }
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </div>
+                          )
+                        )}
                         <div sx={{ mb: 2 }}>Add Condition</div>
                         <Box
                           sx={{
@@ -664,14 +929,27 @@ const StopLossFilterComponent = ({
                             mb: 2,
                           }}
                         >
+                          {attributeConditions.exclusionDetails.length > 0 && (
+                            <FormControl fullWidth>
+                              <InputLabel>Select Conjunction</InputLabel>
+                              <Select
+                                value={newAttributesCondition.conjunction}
+                                label="Select Conjunction"
+                                onChange={handleMetricsChange("conjunction")}
+                              >
+                                <MenuItem value="AND">AND</MenuItem>
+                                <MenuItem value="OR">OR</MenuItem>
+                              </Select>
+                            </FormControl>
+                          )}
                           <FormControl fullWidth>
                             <InputLabel>Select Field</InputLabel>
                             <Select
-                              value={newCondition.field}
+                              value={newAttributesCondition.field}
                               label="Select Field"
-                              onChange={handleChange("field")}
+                              onChange={handleAttributesChange("field")}
                             >
-                              {fieldOptions.map((option) => (
+                              {attributeFieldOptions.map((option) => (
                                 <MenuItem key={option} value={option}>
                                   {option}
                                 </MenuItem>
@@ -681,9 +959,9 @@ const StopLossFilterComponent = ({
                           <FormControl fullWidth>
                             <InputLabel>Select Operator</InputLabel>
                             <Select
-                              value={newCondition.operator}
+                              value={newAttributesCondition.operator}
                               label="Select Operator"
-                              onChange={handleChange("operator")}
+                              onChange={handleAttributesChange("operator")}
                             >
                               <MenuItem value="equals">Equals</MenuItem>
                               <MenuItem value="contains">Contains</MenuItem>
@@ -692,8 +970,8 @@ const StopLossFilterComponent = ({
                           <TextField
                             fullWidth
                             label="Enter Value"
-                            value={newCondition.value}
-                            onChange={handleChange("value")}
+                            value={newAttributesCondition.value}
+                            onChange={handleAttributesChange("value")}
                           />
                         </Box>
                         <div
@@ -706,88 +984,108 @@ const StopLossFilterComponent = ({
                           <Button
                             variant="contained"
                             startIcon={<AddIcon />}
-                            onClick={addCondition}
+                            onClick={() =>
+                              addAttributesCondition("exclusionDetails")
+                            }
                           >
                             Add Condition
                           </Button>
                         </div>
                       </Box>
                       <Stack direction="row" spacing={1} sx={{ mb: 2, mt: 4 }}>
-                        {conditions.map((condition, index) => (
-                          <React.Fragment key={index}>
-                            {index > 0 && (
-                              <Chip
-                                label={`${condition.conjunction}`}
-                                color="primary"
-                                variant="outlined"
-                                sx={{
-                                  fontSize: 14,
-                                }}
-                              />
-                            )}
-
-                            {editingIndex === index ? (
-                              <Box sx={{ display: "flex", gap: 1 }}>
-                                <FormControl size="small" fullWidth>
-                                  <InputLabel>Select Field</InputLabel>
-                                  <Select
-                                    value={condition.field}
-                                    label="Select Field"
-                                    onChange={handleChange("field", index)}
-                                  >
-                                    {fieldOptions.map((option) => (
-                                      <MenuItem key={option} value={option}>
-                                        {option}
-                                      </MenuItem>
-                                    ))}
-                                  </Select>
-                                </FormControl>
-                                <FormControl size="small" fullWidth>
-                                  <InputLabel>Select Operator</InputLabel>
-                                  <Select
-                                    value={condition.operator}
-                                    label="Select Operator"
-                                    onChange={handleChange("operator", index)}
-                                  >
-                                    {operators.map((option) => (
-                                      <MenuItem
-                                        key={option.value}
-                                        value={option.value}
-                                      >
-                                        {option.label}
-                                      </MenuItem>
-                                    ))}
-                                  </Select>
-                                </FormControl>
-                                <TextField
-                                  size="small"
-                                  value={condition.value}
-                                  onChange={handleChange("value", index)}
+                        {attributeConditions.exclusionDetails.map(
+                          (condition, index) => (
+                            <React.Fragment key={index}>
+                              {index > 0 && (
+                                <Chip
+                                  label={`${condition.conjunction}`}
+                                  color="primary"
+                                  variant="outlined"
+                                  sx={{
+                                    fontSize: 14,
+                                  }}
                                 />
-                                <IconButton onClick={stopEditingCondition}>
-                                  <CloseIcon />
-                                </IconButton>
-                              </Box>
-                            ) : (
-                              <Chip
-                                label={`${condition.field} ${condition.operator} ${condition.value}`}
-                                onClick={() => startEditingCondition(index)}
-                                onDelete={() => deleteCondition(index)}
-                                color="primary"
-                                variant="outlined"
-                                sx={{
-                                  fontSize: 14,
-                                }}
-                              />
-                            )}
-                          </React.Fragment>
-                        ))}
+                              )}
+
+                              {editingIndex === index ? (
+                                <Box sx={{ display: "flex", gap: 1 }}>
+                                  <FormControl size="small" fullWidth>
+                                    <InputLabel>Select Field</InputLabel>
+                                    <Select
+                                      value={condition.field}
+                                      label="Select Field"
+                                      onChange={handleAttributesChange(
+                                        "field",
+                                        index,
+                                        "exclusionDetails"
+                                      )}
+                                    >
+                                      {fieldOptions.map((option) => (
+                                        <MenuItem key={option} value={option}>
+                                          {option}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                  <FormControl size="small" fullWidth>
+                                    <InputLabel>Select Operator</InputLabel>
+                                    <Select
+                                      value={condition.operator}
+                                      label="Select Operator"
+                                      onChange={handleAttributesChange(
+                                        "operator",
+                                        index
+                                      )}
+                                    >
+                                      {operators.map((option) => (
+                                        <MenuItem
+                                          key={option.value}
+                                          value={option.value}
+                                        >
+                                          {option.label}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                  <TextField
+                                    size="small"
+                                    value={condition.value}
+                                    onChange={handleAttributesChange(
+                                      "value",
+                                      index,
+                                      "exclusionDetails"
+                                    )}
+                                  />
+                                  <IconButton onClick={stopEditingCondition}>
+                                    <CloseIcon />
+                                  </IconButton>
+                                </Box>
+                              ) : (
+                                <Chip
+                                  label={`${condition.field} ${condition.operator} ${condition.value}`}
+                                  onClick={() => startEditingCondition(index)}
+                                  onDelete={() =>
+                                    deleteAttributesCondition(
+                                      index,
+                                      "exclusionDetails"
+                                    )
+                                  }
+                                  color="primary"
+                                  variant="outlined"
+                                  sx={{
+                                    fontSize: 14,
+                                  }}
+                                />
+                              )}
+                            </React.Fragment>
+                          )
+                        )}
                       </Stack>
                     </div>
                   ) : (
                     <Button
                       variant="outlined"
-                      onClick={handleAtrOpen}
+                      onClick={() => handleAtrOpen("exclusionDetails")}
                       sx={{
                         backgroundColor: "white",
                         color: "gray.900",
@@ -813,9 +1111,10 @@ const StopLossFilterComponent = ({
               )}
             </Box>
           </div>
-          
+
+          {/* inclusion details */}
           <div
-            style={{ marginBottom: "20px", fontSize: "24px", fontWeight: 500 }}
+            style={{ marginBlock: "20px", fontSize: "24px", fontWeight: 500 }}
           >
             Inclusion Details
           </div>
@@ -830,31 +1129,39 @@ const StopLossFilterComponent = ({
             >
               <Typography
                 variant="h6"
-                onClick={() => handleOptionSelect("metrics")}
+                onClick={() =>
+                  handleOptionSelect("inclusionDetails", "metrics")
+                }
                 className={`font-sans `}
                 sx={{
                   ...commonTypographyStyles,
-                  ...(selectedOption === "metrics" ? selectedStyles : {}),
+                  ...(selectedOption.inclusionDetails === "metrics"
+                    ? selectedStyles
+                    : {}),
                 }}
               >
                 Metrics
-                {isMetApplied && (
+                {isMetApplied.inclusionDetails && (
                   <span style={appliedBadgeStyles}>Applied</span>
                 )}
               </Typography>
 
               <Typography
                 variant="h6"
-                onClick={() => handleOptionSelect("attributes")}
+                onClick={() =>
+                  handleOptionSelect("inclusionDetails", "attributes")
+                }
                 className={`font-sans `}
                 sx={{
                   ...commonTypographyStyles,
-                  ...(selectedOption === "attributes" ? selectedStyles : {}),
+                  ...(selectedOption.inclusionDetails === "attributes"
+                    ? selectedStyles
+                    : {}),
                   marginBottom: 0, // To remove margin-bottom from the last item
                 }}
               >
                 Attributes
-                {isAtrApplied && (
+                {isAtrApplied.inclusionDetails && (
                   <span style={appliedBadgeStyles}>Applied</span>
                 )}
               </Typography>
@@ -862,7 +1169,7 @@ const StopLossFilterComponent = ({
 
             {/* Main Content */}
             <Box sx={{ flexGrow: 1, p: 2 }}>
-              {selectedOption === "metrics" && (
+              {selectedOption.inclusionDetails === "metrics" && (
                 <div>
                   <Typography variant="h5">Add a metric filter</Typography>
                   <div
@@ -873,7 +1180,7 @@ const StopLossFilterComponent = ({
                   >
                     Common metrics include: Spend, Revenue, Clicks, CTR
                   </div>
-                  {selectedMetrics ? (
+                  {selectedMetrics.inclusionDetails ? (
                     <div>
                       <Box
                         sx={{
@@ -887,8 +1194,14 @@ const StopLossFilterComponent = ({
                       >
                         <IconButton
                           onClick={() => {
-                            setSelectedMetrics(false);
-                            setIsMetApplied(false);
+                            setSelectedMetrics({
+                              ...selectedAttributes,
+                              inclusionDetails: false,
+                            });
+                            setIsMetApplied({
+                              ...isMetApplied,
+                              inclusionDetails: false,
+                            });
                           }}
                           sx={{
                             position: "absolute",
@@ -898,57 +1211,78 @@ const StopLossFilterComponent = ({
                         >
                           <CloseIcon />
                         </IconButton>
-                        {conditions.map((condition, index) => (
-                          <div
-                            key={index}
-                            style={{
-                              display: "flex",
-                              gap: 10,
-                              marginBottom: 10,
-                            }}
-                          >
-                            <FormControl fullWidth>
-                              <InputLabel>Select Field</InputLabel>
-                              <Select
-                                value={condition.field}
-                                label="Select Field"
-                                onChange={handleChange("field", index)}
+                        {metricsConditions.inclusionDetails.map(
+                          (condition, index) => (
+                            <div
+                              key={index}
+                              style={{
+                                display: "flex",
+                                gap: 10,
+                                marginBottom: 10,
+                              }}
+                            >
+                              <FormControl fullWidth>
+                                <InputLabel>Select Field</InputLabel>
+                                <Select
+                                  value={condition.field}
+                                  label="Select Field"
+                                  onChange={handleMetricsChange(
+                                    "field",
+                                    index,
+                                    "inclusionDetails"
+                                  )}
+                                >
+                                  {fieldOptions.map((option) => (
+                                    <MenuItem key={option} value={option}>
+                                      {option}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                              <FormControl fullWidth>
+                                <InputLabel>Select Operator</InputLabel>
+                                <Select
+                                  value={condition.operator}
+                                  label="Select Operator"
+                                  onChange={handleMetricsChange(
+                                    "operator",
+                                    index,
+                                    "inclusionDetails"
+                                  )}
+                                >
+                                  {operators.map((option) => (
+                                    <MenuItem
+                                      key={option.value}
+                                      value={option.value}
+                                    >
+                                      {option.label}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                              <TextField
+                                fullWidth
+                                label="Enter Value"
+                                value={condition.value}
+                                onChange={handleMetricsChange(
+                                  "value",
+                                  index,
+                                  "inclusionDetails"
+                                )}
+                              />
+                              <IconButton
+                                onClick={() =>
+                                  deleteMetricsCondition(
+                                    index,
+                                    "inclusionDetails"
+                                  )
+                                }
                               >
-                                {fieldOptions.map((option) => (
-                                  <MenuItem key={option} value={option}>
-                                    {option}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
-                            <FormControl fullWidth>
-                              <InputLabel>Select Operator</InputLabel>
-                              <Select
-                                value={condition.operator}
-                                label="Select Operator"
-                                onChange={handleChange("operator", index)}
-                              >
-                                {operators.map((option) => (
-                                  <MenuItem
-                                    key={option.value}
-                                    value={option.value}
-                                  >
-                                    {option.label}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
-                            <TextField
-                              fullWidth
-                              label="Enter Value"
-                              value={condition.value}
-                              onChange={handleChange("value", index)}
-                            />
-                            <IconButton onClick={() => deleteCondition(index)}>
-                              <DeleteIcon />
-                            </IconButton>
-                          </div>
-                        ))}
+                                <DeleteIcon />
+                              </IconButton>
+                            </div>
+                          )
+                        )}
                         <div sx={{ mb: 2 }}>Add Condition</div>
                         <Box
                           sx={{
@@ -957,13 +1291,13 @@ const StopLossFilterComponent = ({
                             mb: 2,
                           }}
                         >
-                          {conditions.length > 0 && (
+                          {metricsConditions.inclusionDetails.length > 0 && (
                             <FormControl fullWidth>
                               <InputLabel>Select Conjunction</InputLabel>
                               <Select
-                                value={newCondition.conjunction}
+                                value={newMetricsCondition.conjunction}
                                 label="Select Conjunction"
-                                onChange={handleChange("conjunction")}
+                                onChange={handleMetricsChange("conjunction")}
                               >
                                 <MenuItem value="AND">AND</MenuItem>
                                 <MenuItem value="OR">OR</MenuItem>
@@ -974,9 +1308,9 @@ const StopLossFilterComponent = ({
                           <FormControl fullWidth>
                             <InputLabel>Select Field</InputLabel>
                             <Select
-                              value={newCondition.field}
+                              value={newMetricsCondition.field}
                               label="Select Field"
-                              onChange={handleChange("field")}
+                              onChange={handleMetricsChange("field")}
                             >
                               {fieldOptions.map((option) => (
                                 <MenuItem key={option} value={option}>
@@ -988,9 +1322,9 @@ const StopLossFilterComponent = ({
                           <FormControl fullWidth>
                             <InputLabel>Select Operator</InputLabel>
                             <Select
-                              value={newCondition.operator}
+                              value={newMetricsCondition.operator}
                               label="Select Operator"
-                              onChange={handleChange("operator")}
+                              onChange={handleMetricsChange("operator")}
                             >
                               {operators.map((option) => (
                                 <MenuItem
@@ -1005,8 +1339,8 @@ const StopLossFilterComponent = ({
                           <TextField
                             fullWidth
                             label="Enter Value"
-                            value={newCondition.value}
-                            onChange={handleChange("value")}
+                            value={newMetricsCondition.value}
+                            onChange={handleMetricsChange("value")}
                           />
                         </Box>
                         <div
@@ -1020,88 +1354,108 @@ const StopLossFilterComponent = ({
                           <Button
                             variant="contained"
                             startIcon={<AddIcon />}
-                            onClick={addCondition}
+                            onClick={() =>
+                              addMetricsCondition("inclusionDetails")
+                            }
                           >
                             Add Condition
                           </Button>
                         </div>
                       </Box>
                       <Stack direction="row" spacing={1} sx={{ mb: 2, mt: 4 }}>
-                        {conditions.map((condition, index) => (
-                          <React.Fragment key={index}>
-                            {index > 0 && (
-                              <Chip
-                                label={`${condition.conjunction}`}
-                                color="primary"
-                                variant="outlined"
-                                sx={{
-                                  fontSize: 14,
-                                }}
-                              />
-                            )}
-
-                            {editingIndex === index ? (
-                              <Box sx={{ display: "flex", gap: 1 }}>
-                                <FormControl size="small" fullWidth>
-                                  <InputLabel>Select Field</InputLabel>
-                                  <Select
-                                    value={condition.field}
-                                    label="Select Field"
-                                    onChange={handleChange("field", index)}
-                                  >
-                                    {fieldOptions.map((option) => (
-                                      <MenuItem key={option} value={option}>
-                                        {option}
-                                      </MenuItem>
-                                    ))}
-                                  </Select>
-                                </FormControl>
-                                <FormControl size="small" fullWidth>
-                                  <InputLabel>Select Operator</InputLabel>
-                                  <Select
-                                    value={condition.operator}
-                                    label="Select Operator"
-                                    onChange={handleChange("operator", index)}
-                                  >
-                                    {operators.map((option) => (
-                                      <MenuItem
-                                        key={option.value}
-                                        value={option.value}
-                                      >
-                                        {option.label}
-                                      </MenuItem>
-                                    ))}
-                                  </Select>
-                                </FormControl>
-                                <TextField
-                                  size="small"
-                                  value={condition.value}
-                                  onChange={handleChange("value", index)}
+                        {metricsConditions.inclusionDetails.map(
+                          (condition, index) => (
+                            <React.Fragment key={index}>
+                              {index > 0 && (
+                                <Chip
+                                  label={`${condition.conjunction}`}
+                                  color="primary"
+                                  variant="outlined"
+                                  sx={{
+                                    fontSize: 14,
+                                  }}
                                 />
-                                <IconButton onClick={stopEditingCondition}>
-                                  <CloseIcon />
-                                </IconButton>
-                              </Box>
-                            ) : (
-                              <Chip
-                                label={`${condition.field} ${condition.operator} ${condition.value}`}
-                                onClick={() => startEditingCondition(index)}
-                                onDelete={() => deleteCondition(index)}
-                                color="primary"
-                                variant="outlined"
-                                sx={{
-                                  fontSize: 14,
-                                }}
-                              />
-                            )}
-                          </React.Fragment>
-                        ))}
+                              )}
+
+                              {editingIndex === index ? (
+                                <Box sx={{ display: "flex", gap: 1 }}>
+                                  <FormControl size="small" fullWidth>
+                                    <InputLabel>Select Field</InputLabel>
+                                    <Select
+                                      value={condition.field}
+                                      label="Select Field"
+                                      onChange={handleMetricsChange(
+                                        "field",
+                                        index
+                                      )}
+                                    >
+                                      {fieldOptions.map((option) => (
+                                        <MenuItem key={option} value={option}>
+                                          {option}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                  <FormControl size="small" fullWidth>
+                                    <InputLabel>Select Operator</InputLabel>
+                                    <Select
+                                      value={condition.operator}
+                                      label="Select Operator"
+                                      onChange={handleMetricsChange(
+                                        "operator",
+                                        index,
+                                        "inclusionDetails"
+                                      )}
+                                    >
+                                      {operators.map((option) => (
+                                        <MenuItem
+                                          key={option.value}
+                                          value={option.value}
+                                        >
+                                          {option.label}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                  <TextField
+                                    size="small"
+                                    value={condition.value}
+                                    onChange={handleMetricsChange(
+                                      "value",
+                                      index,
+                                      "inclusionDetails"
+                                    )}
+                                  />
+                                  <IconButton onClick={stopEditingCondition}>
+                                    <CloseIcon />
+                                  </IconButton>
+                                </Box>
+                              ) : (
+                                <Chip
+                                  label={`${condition.field} ${condition.operator} ${condition.value}`}
+                                  onClick={() => startEditingCondition(index)}
+                                  onDelete={() =>
+                                    deleteMetricsCondition(
+                                      index,
+                                      "inclusionDetails"
+                                    )
+                                  }
+                                  color="primary"
+                                  variant="outlined"
+                                  sx={{
+                                    fontSize: 14,
+                                  }}
+                                />
+                              )}
+                            </React.Fragment>
+                          )
+                        )}
                       </Stack>
                     </div>
                   ) : (
                     <Button
                       variant="outlined"
-                      onClick={handleMetricOpen}
+                      onClick={() => handleMetricOpen("inclusionDetails")}
                       sx={{
                         backgroundColor: "white",
                         color: "gray.900",
@@ -1125,7 +1479,7 @@ const StopLossFilterComponent = ({
                   )}
                 </div>
               )}
-              {selectedOption === "attributes" && (
+              {selectedOption.inclusionDetails === "attributes" && (
                 <div>
                   <Typography variant="h5">Add an attribute filter</Typography>
                   <div
@@ -1136,7 +1490,7 @@ const StopLossFilterComponent = ({
                   >
                     Common attributes include: SKU id, MRP, Price
                   </div>
-                  {selectedMetrics ? (
+                  {selectedAttributes.inclusionDetails ? (
                     <div>
                       <Box
                         sx={{
@@ -1150,8 +1504,14 @@ const StopLossFilterComponent = ({
                       >
                         <IconButton
                           onClick={() => {
-                            setSelectedMetrics(false);
-                            setIsMetApplied(false);
+                            setSelectedAttributes({
+                              ...selectedAttributes,
+                              inclusionDetails: false,
+                            });
+                            setIsAtrApplied({
+                              ...isAtrApplied,
+                              inclusionDetails: false,
+                            });
                           }}
                           sx={{
                             position: "absolute",
@@ -1161,6 +1521,78 @@ const StopLossFilterComponent = ({
                         >
                           <CloseIcon />
                         </IconButton>
+                        {attributeConditions.inclusionDetails.map(
+                          (condition, index) => (
+                            <div
+                              key={index}
+                              style={{
+                                display: "flex",
+                                gap: 10,
+                                marginBottom: 10,
+                              }}
+                            >
+                              <FormControl fullWidth>
+                                <InputLabel>Select Field</InputLabel>
+                                <Select
+                                  value={condition.field}
+                                  label="Select Field"
+                                  onChange={handleAttributesChange(
+                                    "field",
+                                    index,
+                                    "inclusionDetails"
+                                  )}
+                                >
+                                  {attributeFieldOptions.map((option) => (
+                                    <MenuItem key={option} value={option}>
+                                      {option}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                              <FormControl fullWidth>
+                                <InputLabel>Select Operator</InputLabel>
+                                <Select
+                                  value={condition.operator}
+                                  label="Select Operator"
+                                  onChange={handleAttributesChange(
+                                    "operator",
+                                    index,
+                                    "inclusionDetails"
+                                  )}
+                                >
+                                  {operators.map((option) => (
+                                    <MenuItem
+                                      key={option.value}
+                                      value={option.value}
+                                    >
+                                      {option.label}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                              <TextField
+                                fullWidth
+                                label="Enter Value"
+                                value={condition.value}
+                                onChange={handleAttributesChange(
+                                  "value",
+                                  index,
+                                  "inclusionDetails"
+                                )}
+                              />
+                              <IconButton
+                                onClick={() =>
+                                  deleteAttributesCondition(
+                                    index,
+                                    "inclusionDetails"
+                                  )
+                                }
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </div>
+                          )
+                        )}
                         <div sx={{ mb: 2 }}>Add Condition</div>
                         <Box
                           sx={{
@@ -1169,14 +1601,27 @@ const StopLossFilterComponent = ({
                             mb: 2,
                           }}
                         >
+                          {attributeConditions.inclusionDetails.length > 0 && (
+                            <FormControl fullWidth>
+                              <InputLabel>Select Conjunction</InputLabel>
+                              <Select
+                                value={newAttributesCondition.conjunction}
+                                label="Select Conjunction"
+                                onChange={handleMetricsChange("conjunction")}
+                              >
+                                <MenuItem value="AND">AND</MenuItem>
+                                <MenuItem value="OR">OR</MenuItem>
+                              </Select>
+                            </FormControl>
+                          )}
                           <FormControl fullWidth>
                             <InputLabel>Select Field</InputLabel>
                             <Select
-                              value={newCondition.field}
+                              value={newAttributesCondition.field}
                               label="Select Field"
-                              onChange={handleChange("field")}
+                              onChange={handleAttributesChange("field")}
                             >
-                              {fieldOptions.map((option) => (
+                              {attributeFieldOptions.map((option) => (
                                 <MenuItem key={option} value={option}>
                                   {option}
                                 </MenuItem>
@@ -1186,9 +1631,9 @@ const StopLossFilterComponent = ({
                           <FormControl fullWidth>
                             <InputLabel>Select Operator</InputLabel>
                             <Select
-                              value={newCondition.operator}
+                              value={newAttributesCondition.operator}
                               label="Select Operator"
-                              onChange={handleChange("operator")}
+                              onChange={handleAttributesChange("operator")}
                             >
                               <MenuItem value="equals">Equals</MenuItem>
                               <MenuItem value="contains">Contains</MenuItem>
@@ -1197,8 +1642,8 @@ const StopLossFilterComponent = ({
                           <TextField
                             fullWidth
                             label="Enter Value"
-                            value={newCondition.value}
-                            onChange={handleChange("value")}
+                            value={newAttributesCondition.value}
+                            onChange={handleAttributesChange("value")}
                           />
                         </Box>
                         <div
@@ -1211,88 +1656,108 @@ const StopLossFilterComponent = ({
                           <Button
                             variant="contained"
                             startIcon={<AddIcon />}
-                            onClick={addCondition}
+                            onClick={() =>
+                              addAttributesCondition("inclusionDetails")
+                            }
                           >
                             Add Condition
                           </Button>
                         </div>
                       </Box>
                       <Stack direction="row" spacing={1} sx={{ mb: 2, mt: 4 }}>
-                        {conditions.map((condition, index) => (
-                          <React.Fragment key={index}>
-                            {index > 0 && (
-                              <Chip
-                                label={`${condition.conjunction}`}
-                                color="primary"
-                                variant="outlined"
-                                sx={{
-                                  fontSize: 14,
-                                }}
-                              />
-                            )}
-
-                            {editingIndex === index ? (
-                              <Box sx={{ display: "flex", gap: 1 }}>
-                                <FormControl size="small" fullWidth>
-                                  <InputLabel>Select Field</InputLabel>
-                                  <Select
-                                    value={condition.field}
-                                    label="Select Field"
-                                    onChange={handleChange("field", index)}
-                                  >
-                                    {fieldOptions.map((option) => (
-                                      <MenuItem key={option} value={option}>
-                                        {option}
-                                      </MenuItem>
-                                    ))}
-                                  </Select>
-                                </FormControl>
-                                <FormControl size="small" fullWidth>
-                                  <InputLabel>Select Operator</InputLabel>
-                                  <Select
-                                    value={condition.operator}
-                                    label="Select Operator"
-                                    onChange={handleChange("operator", index)}
-                                  >
-                                    {operators.map((option) => (
-                                      <MenuItem
-                                        key={option.value}
-                                        value={option.value}
-                                      >
-                                        {option.label}
-                                      </MenuItem>
-                                    ))}
-                                  </Select>
-                                </FormControl>
-                                <TextField
-                                  size="small"
-                                  value={condition.value}
-                                  onChange={handleChange("value", index)}
+                        {attributeConditions.inclusionDetails.map(
+                          (condition, index) => (
+                            <React.Fragment key={index}>
+                              {index > 0 && (
+                                <Chip
+                                  label={`${condition.conjunction}`}
+                                  color="primary"
+                                  variant="outlined"
+                                  sx={{
+                                    fontSize: 14,
+                                  }}
                                 />
-                                <IconButton onClick={stopEditingCondition}>
-                                  <CloseIcon />
-                                </IconButton>
-                              </Box>
-                            ) : (
-                              <Chip
-                                label={`${condition.field} ${condition.operator} ${condition.value}`}
-                                onClick={() => startEditingCondition(index)}
-                                onDelete={() => deleteCondition(index)}
-                                color="primary"
-                                variant="outlined"
-                                sx={{
-                                  fontSize: 14,
-                                }}
-                              />
-                            )}
-                          </React.Fragment>
-                        ))}
+                              )}
+
+                              {editingIndex === index ? (
+                                <Box sx={{ display: "flex", gap: 1 }}>
+                                  <FormControl size="small" fullWidth>
+                                    <InputLabel>Select Field</InputLabel>
+                                    <Select
+                                      value={condition.field}
+                                      label="Select Field"
+                                      onChange={handleAttributesChange(
+                                        "field",
+                                        index,
+                                        "inclusionDetails"
+                                      )}
+                                    >
+                                      {fieldOptions.map((option) => (
+                                        <MenuItem key={option} value={option}>
+                                          {option}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                  <FormControl size="small" fullWidth>
+                                    <InputLabel>Select Operator</InputLabel>
+                                    <Select
+                                      value={condition.operator}
+                                      label="Select Operator"
+                                      onChange={handleAttributesChange(
+                                        "operator",
+                                        index
+                                      )}
+                                    >
+                                      {operators.map((option) => (
+                                        <MenuItem
+                                          key={option.value}
+                                          value={option.value}
+                                        >
+                                          {option.label}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                  <TextField
+                                    size="small"
+                                    value={condition.value}
+                                    onChange={handleAttributesChange(
+                                      "value",
+                                      index,
+                                      "inclusionDetails"
+                                    )}
+                                  />
+                                  <IconButton onClick={stopEditingCondition}>
+                                    <CloseIcon />
+                                  </IconButton>
+                                </Box>
+                              ) : (
+                                <Chip
+                                  label={`${condition.field} ${condition.operator} ${condition.value}`}
+                                  onClick={() => startEditingCondition(index)}
+                                  onDelete={() =>
+                                    deleteAttributesCondition(
+                                      index,
+                                      "inclusionDetails"
+                                    )
+                                  }
+                                  color="primary"
+                                  variant="outlined"
+                                  sx={{
+                                    fontSize: 14,
+                                  }}
+                                />
+                              )}
+                            </React.Fragment>
+                          )
+                        )}
                       </Stack>
                     </div>
                   ) : (
                     <Button
                       variant="outlined"
-                      onClick={handleAtrOpen}
+                      onClick={() => handleAtrOpen("inclusionDetails")}
                       sx={{
                         backgroundColor: "white",
                         color: "gray.900",
@@ -1319,19 +1784,21 @@ const StopLossFilterComponent = ({
             </Box>
           </div>
 
-          <Button
-            variant="contained"
-            onClick={handleApply}
-            sx={{
-              position: "absolute",
-              bottom: 16,
-              right: 16,
-              width: "100px",
-              height: "40px",
-            }}
-          >
-            Apply
-          </Button>
+          <div className="w-full flex items-center justify-end mt-5">
+            <Button
+              variant="contained"
+              onClick={handleApply}
+              sx={{
+                // position: "absolute",
+                // bottom: 16,
+                // right: 16,
+                width: "100px",
+                height: "40px",
+              }}
+            >
+              Apply
+            </Button>
+          </div>
         </Box>
       </Modal>
     </Box>
