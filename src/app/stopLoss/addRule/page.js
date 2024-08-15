@@ -5,7 +5,7 @@ import FilterComponent from "@/components/FilterComponent";
 import Layout from "@/components/Layout";
 import { parse } from "papaparse";
 import { saveAs } from "file-saver";
-import { Stack, Chip } from "@mui/material";
+import { Stack, Chip, Box, CircularProgress } from "@mui/material";
 import AddStopLossRuleModal from "@/components/AddStopLossRuleModal";
 import ApplyRule from "@/components/ApplyRuleModal";
 import StopLossFilterComponent from "@/components/StopLossFilterComponent";
@@ -254,7 +254,14 @@ const AddRule = () => {
             ))}
           </Stack> */}
           {loading ? (
-            <div>Loading...</div>
+            <Box
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              height="300px"
+            >
+              <CircularProgress />
+            </Box>
           ) : (
             <AnalyticsTable productsData={productsData} />
           )}
