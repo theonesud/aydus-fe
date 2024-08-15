@@ -5,14 +5,16 @@ import FilterComponent from "@/components/FilterComponent";
 import Layout from "@/components/Layout";
 import { parse } from "papaparse";
 import { saveAs } from "file-saver";
-import { Stack, Chip } from "@mui/material";
+import { Stack, Chip, CircularProgress, Box } from "@mui/material";
 import { creatProductSetApi, productApi } from "@/utils/api"; // Ensure you import the API function
+import { toast } from "react-toastify";
 
 const ProductAnalyticsPage = () => {
   const [filterText, setFilterText] = useState("");
   const [productsData, setProductsData] = useState([]);
   const [appliedMetricConditions, setAppliedMetricConditions] = useState([]);
   const [appliedAttributeConditions, setAppliedAttributeConditions] = useState([]);
+  const [loading, setLoading] = useState(false); // Loader state
 
   // Fetch and parse CSV on mount
   useEffect(() => {
@@ -20,6 +22,7 @@ const ProductAnalyticsPage = () => {
   }, []);
 
   const fetchProductsApiCall = async (inputData = {}) => {
+    setLoading(true); // Start loading
     try {
       // Call the API
       await productApi(
@@ -28,13 +31,16 @@ const ProductAnalyticsPage = () => {
           console.log("API Response:", response.data); // Log the response
           // Optionally update productsData with the API response
           setProductsData(response.data.data || []);
+          setLoading(false); // Stop loading
         },
         (error) => {
           console.error("API Error:", error);
+          setLoading(false); // Stop loading
         }
       );
     } catch (error) {
       console.error("Failed to call API:", error);
+      setLoading(false); // Stop loading
     }
   };
 
@@ -46,10 +52,11 @@ const ProductAnalyticsPage = () => {
         (response) => {
           console.log("API Response:", response.data); // Log the response
           // Optionally update productsData with the API response
-          // setProductsData(response.data.data || []);
+          toast.success("Product set created successfully");
         },
         (error) => {
           console.error("API Error:", error);
+          toast.error("Failed to create product set");
         }
       );
     } catch (error) {
@@ -122,7 +129,7 @@ const ProductAnalyticsPage = () => {
           onFilterChange={(event) => setFilterText(event.target.value)}
           onDownload={handleDownload}
           onApplyConditions={handleApplyConditions} // pass the handler
-          handleClickOpenFunction={() => {
+          handleClickOpenFunction={(data) => {
             const postData = {
               metrics_filter: appliedMetricConditions.map((item, index) => {
                 if (index === 0) {
@@ -149,7 +156,9 @@ const ProductAnalyticsPage = () => {
               from_date: "2024-08-13", // example date, update with actual
               to_date: "2024-07-13", // example date, update with actual
             };
-            createProductSetCall(postData);
+            if (data === 'productSet') {
+              createProductSetCall(postData);
+            }
           }}
         />
         {/* Display applied conditions as chips */}
@@ -168,7 +177,13 @@ const ProductAnalyticsPage = () => {
             )
           )}
         </Stack>
-        <AnalyticsTable productsData={productsData} />
+        {loading ? (
+          <Box display="flex" justifyContent="center" alignItems="center" height="300px">
+            <CircularProgress />
+          </Box>
+        ) : (
+          <AnalyticsTable productsData={productsData} />
+        )}
       </div>
     </Layout>
   );

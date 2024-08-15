@@ -51,11 +51,11 @@ const FilterComponent = ({
   const [editingIndex, setEditingIndex] = useState(null);
 
   const handleClickOpen = () => {
-    handleClickOpenFunction();
+    handleClickOpenFunction('filters');
     setOpen(true);
   };
   const handleProductSet = () => {
-    handleClickOpenFunction()
+    handleClickOpenFunction('productSet');
   }
 
   const handleClose = () => {
