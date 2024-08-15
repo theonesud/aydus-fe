@@ -137,7 +137,7 @@ const Home = () => {
           >
             Dashboard
           </h3>
-          <Box  sx={{width:450,marginTop:3}}>
+          <Box sx={{ width: 450, marginTop: 3 }}>
             <DateRangePicker
               startText="Start Date"
               endText="End Date"
@@ -337,9 +337,22 @@ const Home = () => {
                   textAlign: "left",
                 }}
               >
-                <h3 style={{ fontSize: "22px", fontWeight: "bold" }}>
-                  {summaryData.title}
-                </h3>
+                <div style={{display:'flex',justifyContent:'space-between'}}>
+                  <h3 style={{ fontSize: "22px", fontWeight: "bold" }}>
+                    {summaryData.title}
+                  </h3>
+                  <div
+                    style={{
+                      color: "#007bff",
+                      border: "none",
+                      padding: "5px 10px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    View Products
+                  </div>
+                </div>
+
                 <p style={{ fontSize: "18px" }}>{summaryData.description}</p>
                 <p style={{ fontSize: "16px", color: "#666" }}>
                   {stopLossData.cash_saved}/-

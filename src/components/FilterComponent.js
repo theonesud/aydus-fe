@@ -92,6 +92,8 @@ const FilterComponent = ({
   const deleteAttributeCondition = (index) => {
     setAttributeConditions(attributeConditions.filter((_, i) => i !== index));
   };
+  
+  
 
   const handleMetricChange = (prop, index) => (event) => {
     if (index !== undefined) {
