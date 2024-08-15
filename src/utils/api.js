@@ -27,7 +27,7 @@ export const quadrantDataApi = async (data, success, failure) => {
         "Content-Type": "application/json",
       },
     });
-    success(response);
+    success(response.data);
   } catch (error) {
     // You might want to log the error or process it before calling failure
     console.error("API call failed:", error);

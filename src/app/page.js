@@ -7,7 +7,11 @@ import {
   Select,
   MenuItem,
   TextField,
+  Box,
 } from "@mui/material";
+import { DateRangePicker } from "@mui/x-date-pickers-pro";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"; // Import the appropriate adapter
 import { getStopLoss, quadrantDataApi } from "@/utils/api"; // Adjust the path as needed
 
 const Home = () => {
@@ -19,6 +23,7 @@ const Home = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [stopLossData, setStopLossData] = useState([]);
+  const [dateRange, setDateRange] = useState([null, null]);
 
   const summaryData = {
     title: "Stop Loss",
@@ -46,8 +51,8 @@ const Home = () => {
     setLoading(true);
     setError(null);
     const data = {
-      from_date: "2024-01-01", // Assuming these dates are constant; adjust as necessary
-      to_date: "2024-12-31",
+      from_date: dateRange[0] ? dateRange[0].toISOString().split('T')[0] : "2024-01-01",
+      to_date: dateRange[1] ? dateRange[1].toISOString().split('T')[0] : "2024-12-31",
     };
     getStopLoss(
       data,
@@ -69,8 +74,8 @@ const Home = () => {
     setError(null);
 
     const postData = {
-      from_date: "2022-01-01", // Assuming these dates are constant; adjust as necessary
-      to_date: "2022-12-31",
+      from_date: dateRange[0] ? dateRange[0].toISOString().split('T')[0] : "2022-01-01",
+      to_date: dateRange[1] ? dateRange[1].toISOString().split('T')[0] : "2022-12-31",
       x_col: xAxisMetric,
       x_val: xAxisValue,
       y_col: yAxisMetric,
@@ -116,213 +121,234 @@ const Home = () => {
   useEffect(() => {
     fetchQuadrantData();
     fetchStopLoss();
-  }, [xAxisMetric, yAxisMetric, xAxisValue, yAxisValue]); // Fetch when inputs change
+  }, [xAxisMetric, yAxisMetric, xAxisValue, yAxisValue, dateRange]);
 
   return (
     <Layout>
-      <div className="border-b border-gray-200 pb-5">
-        <h3
-          style={{
-            fontSize: "24px",
-            fontWeight: "bold",
-            margin: "20px 0",
-          }}
-          className=" leading-6 text-gray-900"
-        >
-          Dashboard
-        </h3>
-      </div>
-
-      {/* Dropdowns Section */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: "20px",
-          marginTop: "20px",
-        }}
-      >
-        <FormControl variant="outlined" style={{ minWidth: 250 }}>
-          <InputLabel id="x-axis-metric-label">X-Axis Metric</InputLabel>
-          <Select
-            labelId="x-axis-metric-label"
-            value={xAxisMetric}
-            onChange={handleXAxisMetricChange}
-            label="X-Axis Metric"
-          >
-            <MenuItem value="price">Price</MenuItem>
-            <MenuItem value="CatalogSpends">Catalog Spends</MenuItem>
-            <MenuItem value="BlendedROAS">Blended ROAS</MenuItem>
-            <MenuItem value="Views">Views</MenuItem>
-            <MenuItem value="GoogleSpends">Google Spends</MenuItem>
-            <MenuItem value="FBSpends">FB Spends</MenuItem>
-          </Select>
-        </FormControl>
-
-        <TextField
-          label="X-Axis Value"
-          variant="outlined"
-          value={xAxisValue}
-          onChange={handleXAxisValueChange}
-          style={{ minWidth: 200 }}
-        />
-
-        <FormControl variant="outlined" style={{ minWidth: 250 }}>
-          <InputLabel id="y-axis-metric-label">Y-Axis Metric</InputLabel>
-          <Select
-            labelId="y-axis-metric-label"
-            value={yAxisMetric}
-            onChange={handleYAxisMetricChange}
-            label="Y-Axis Metric"
-          >
-            <MenuItem value="price">Price</MenuItem>
-            <MenuItem value="CatalogSpends">Catalog Spends</MenuItem>
-            <MenuItem value="BlendedROAS">Blended ROAS</MenuItem>
-            <MenuItem value="Views">Views</MenuItem>
-            <MenuItem value="GoogleSpends">Google Spends</MenuItem>
-            <MenuItem value="FBSpends">FB Spends</MenuItem>
-          </Select>
-        </FormControl>
-
-        <TextField
-          label="Y-Axis Value"
-          variant="outlined"
-          value={yAxisValue}
-          onChange={handleYAxisValueChange}
-          style={{ minWidth: 200 }}
-        />
-      </div>
-
-      {loading ? (
-        <div>Loading...</div>
-      ) : error ? (
-        <div>{error}</div>
-      ) : (
-        <div>
-          {/* Quadrants Section */}
-          <div
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <div className="border-b border-gray-200 pb-5 justify-between flex">
+          <h3
             style={{
-              margin: "10px",
-              alignItems: "center",
-              boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-              padding: "10px",
-              borderRadius: "10px",
-              backgroundColor: "#fff",
+              fontSize: "24px",
+              fontWeight: "bold",
+              margin: "20px 0",
             }}
+            className=" leading-6 text-gray-900"
           >
+            Dashboard
+          </h3>
+          <Box  sx={{width:450,marginTop:3}}>
+            <DateRangePicker
+              startText="Start Date"
+              endText="End Date"
+              value={dateRange}
+              onChange={(newValue) => {
+                setDateRange(newValue);
+              }}
+              textField={(startProps, endProps) => (
+                <>
+                  <TextField {...startProps} style={{ marginRight: 8 }} />
+                  <TextField {...endProps} />
+                </>
+              )}
+            />
+          </Box>
+        </div>
+
+        {/* Date Range Picker Section */}
+
+
+        {/* Dropdowns Section */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: "20px",
+            marginTop: "20px",
+          }}
+        >
+          <FormControl variant="outlined" style={{ minWidth: 250 }}>
+            <InputLabel id="x-axis-metric-label">X-Axis Metric</InputLabel>
+            <Select
+              labelId="x-axis-metric-label"
+              value={xAxisMetric}
+              onChange={handleXAxisMetricChange}
+              label="X-Axis Metric"
+            >
+              <MenuItem value="price">Price</MenuItem>
+              <MenuItem value="CatalogSpends">Catalog Spends</MenuItem>
+              <MenuItem value="BlendedROAS">Blended ROAS</MenuItem>
+              <MenuItem value="Views">Views</MenuItem>
+              <MenuItem value="GoogleSpends">Google Spends</MenuItem>
+              <MenuItem value="FBSpends">FB Spends</MenuItem>
+            </Select>
+          </FormControl>
+
+          <TextField
+            label="X-Axis Value"
+            variant="outlined"
+            value={xAxisValue}
+            onChange={handleXAxisValueChange}
+            style={{ minWidth: 200 }}
+          />
+
+          <FormControl variant="outlined" style={{ minWidth: 250 }}>
+            <InputLabel id="y-axis-metric-label">Y-Axis Metric</InputLabel>
+            <Select
+              labelId="y-axis-metric-label"
+              value={yAxisMetric}
+              onChange={handleYAxisMetricChange}
+              label="Y-Axis Metric"
+            >
+              <MenuItem value="price">Price</MenuItem>
+              <MenuItem value="CatalogSpends">Catalog Spends</MenuItem>
+              <MenuItem value="BlendedROAS">Blended ROAS</MenuItem>
+              <MenuItem value="Views">Views</MenuItem>
+              <MenuItem value="GoogleSpends">Google Spends</MenuItem>
+              <MenuItem value="FBSpends">FB Spends</MenuItem>
+            </Select>
+          </FormControl>
+
+          <TextField
+            label="Y-Axis Value"
+            variant="outlined"
+            value={yAxisValue}
+            onChange={handleYAxisValueChange}
+            style={{ minWidth: 200 }}
+          />
+        </div>
+
+        {loading ? (
+          <div>Loading...</div>
+        ) : error ? (
+          <div>{error}</div>
+        ) : (
+          <div>
+            {/* Quadrants Section */}
             <div
               style={{
-                fontSize: "20px",
-                fontWeight: "bold",
+                margin: "10px",
+                alignItems: "center",
+                boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                padding: "10px",
+                borderRadius: "10px",
+                backgroundColor: "#fff",
               }}
             >
-              Quadrant View
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                flexWrap: "wrap",
-                maxWidth: "800px",
-                margin: "0 auto",
-              }}
-            >
-              {quadrantData.map((data, index) => (
-                <div
-                  key={index}
-                  style={{
-                    flex: "1 1 50%",
-                    maxWidth: "calc(50% - 20px)",
-                    margin: "10px",
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                    padding: "10px",
-                    borderRadius: "5px",
-                    backgroundColor: "#fff",
-                  }}
-                >
+              <div
+                style={{
+                  fontSize: "20px",
+                  fontWeight: "bold",
+                }}
+              >
+                Quadrant View
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  flexWrap: "wrap",
+                  maxWidth: "800px",
+                  margin: "0 auto",
+                }}
+              >
+                {quadrantData.map((data, index) => (
                   <div
+                    key={index}
                     style={{
-                      width: "10px",
-                      height: "70px",
-                      backgroundColor: COLORS[index % 4],
+                      flex: "1 1 50%",
+                      maxWidth: "calc(50% - 20px)",
+                      margin: "10px",
+                      display: "flex",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                      padding: "10px",
+                      borderRadius: "5px",
+                      backgroundColor: "#fff",
                     }}
-                  ></div>
-                  <div style={{ marginLeft: "20px", width: "100%" }}>
-                    <div style={{ fontSize: "20px", fontWeight: "bold" }}>
-                      {data.value}
-                    </div>
-                    <div>{data.label}</div>
+                  >
                     <div
                       style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
+                        width: "10px",
+                        height: "70px",
+                        backgroundColor: COLORS[index % 4],
                       }}
-                    >
-                      ({data.count})
+                    ></div>
+                    <div style={{ marginLeft: "20px", width: "100%" }}>
+                      <div style={{ fontSize: "20px", fontWeight: "bold" }}>
+                        {data.value}
+                      </div>
+                      <div>{data.label}</div>
                       <div
                         style={{
-                          color: "#007bff",
-                          border: "none",
-                          padding: "5px 10px",
-                          cursor: "pointer",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
                         }}
                       >
-                        View Products
+                        ({data.count})
+                        <div
+                          style={{
+                            color: "#007bff",
+                            border: "none",
+                            padding: "5px 10px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          View Products
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-          <div className="border-b border-gray-200 pb-5"></div>
-          <div
-            style={{
-              margin: "10px",
-              alignItems: "center",
-              boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-              padding: "10px",
-              borderRadius: "10px",
-              backgroundColor: "#fff",
-              marginTop: "20px",
-            }}
-          >
+            <div className="border-b border-gray-200 pb-5"></div>
             <div
               style={{
-                fontSize: "20px",
-                fontWeight: "bold",
-              }}
-            >
-              Stop Loss
-            </div>
-            {/* Stop Loss Summary Card */}
-            <div
-              style={{
-                marginTop: "20px",
-                padding: "20px",
-                backgroundColor: "#f9f9f9",
-                borderRadius: "5px",
+                margin: "10px",
+                alignItems: "center",
                 boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                width: "50%",
-                margin: "20px auto",
-                textAlign: "left",
+                padding: "10px",
+                borderRadius: "10px",
+                backgroundColor: "#fff",
+                marginTop: "20px",
               }}
             >
-              <h3 style={{ fontSize: "22px", fontWeight: "bold" }}>
-                {summaryData.title}
-              </h3>
-              <p style={{ fontSize: "18px" }}>{summaryData.description}</p>
-              <p style={{ fontSize: "16px", color: "#666" }}>
-                {stopLossData.cash_saved}/-
-              </p>
+              <div
+                style={{
+                  fontSize: "20px",
+                  fontWeight: "bold",
+                }}
+              >
+                Stop Loss
+              </div>
+              {/* Stop Loss Summary Card */}
+              <div
+                style={{
+                  marginTop: "20px",
+                  padding: "20px",
+                  backgroundColor: "#f9f9f9",
+                  borderRadius: "5px",
+                  boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                  width: "50%",
+                  margin: "20px auto",
+                  textAlign: "left",
+                }}
+              >
+                <h3 style={{ fontSize: "22px", fontWeight: "bold" }}>
+                  {summaryData.title}
+                </h3>
+                <p style={{ fontSize: "18px" }}>{summaryData.description}</p>
+                <p style={{ fontSize: "16px", color: "#666" }}>
+                  {stopLossData.cash_saved}/-
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </LocalizationProvider>
     </Layout>
   );
 };

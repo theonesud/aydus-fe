@@ -5,21 +5,37 @@ import FilterComponent from "@/components/FilterComponent";
 import Layout from "@/components/Layout";
 import { parse } from "papaparse";
 import { saveAs } from "file-saver";
-import { Stack, Chip } from "@mui/material";
+import { Stack, Chip, CircularProgress, Box } from "@mui/material";
 import { creatProductSetApi, productApi } from "@/utils/api"; // Ensure you import the API function
+import { toast } from "react-toastify";
+import moment from "moment";
 
 const ProductAnalyticsPage = () => {
   const [filterText, setFilterText] = useState("");
   const [productsData, setProductsData] = useState([]);
   const [appliedMetricConditions, setAppliedMetricConditions] = useState([]);
-  const [appliedAttributeConditions, setAppliedAttributeConditions] = useState([]);
+  const [appliedAttributeConditions, setAppliedAttributeConditions] = useState(
+    []
+  );
+  const [loading, setLoading] = useState(false); // Loader state
+  const [dates, setDates] = useState({
+    startDate: null,
+    endDate: null,
+  });
 
   // Fetch and parse CSV on mount
   useEffect(() => {
     fetchProductsApiCall(); // Call the API on mount
   }, []);
 
+  useEffect(() => {
+    if (dates?.startDate && dates?.endDate) {
+      handleDateRangeChange();
+    }
+  }, [dates]);
+
   const fetchProductsApiCall = async (inputData = {}) => {
+    setLoading(true); // Start loading
     try {
       // Call the API
       await productApi(
@@ -28,13 +44,16 @@ const ProductAnalyticsPage = () => {
           console.log("API Response:", response.data); // Log the response
           // Optionally update productsData with the API response
           setProductsData(response.data.data || []);
+          setLoading(false); // Stop loading
         },
         (error) => {
           console.error("API Error:", error);
+          setLoading(false); // Stop loading
         }
       );
     } catch (error) {
       console.error("Failed to call API:", error);
+      setLoading(false); // Stop loading
     }
   };
 
@@ -46,10 +65,11 @@ const ProductAnalyticsPage = () => {
         (response) => {
           console.log("API Response:", response.data); // Log the response
           // Optionally update productsData with the API response
-          // setProductsData(response.data.data || []);
+          toast.success("Product set created successfully");
         },
         (error) => {
           console.error("API Error:", error);
+          toast.error("Failed to create product set");
         }
       );
     } catch (error) {
@@ -68,6 +88,33 @@ const ProductAnalyticsPage = () => {
       .join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     saveAs(blob, "filtered_data.csv");
+  };
+
+  const handleDateRangeChange = () => {
+    const prepareConditions = (conditions) => {
+      return conditions.map((item, index) => {
+        if (index === 0) {
+          let newCondition = { ...item };
+          delete newCondition.conjunction;
+          return newCondition;
+        } else {
+          let newCondition = { ...item };
+          newCondition.conjunction = newCondition.conjunction.toLowerCase();
+          return newCondition;
+        }
+      });
+    };
+
+    // Define your post data structure
+    const postData = {
+      metrics_filter: prepareConditions(appliedMetricConditions), // assuming these are the conditions
+      attribute_filter: prepareConditions(appliedAttributeConditions), // modify according to your needs
+      from_date: dates.endDate || "2024-07-13", // example date, update with actual
+      to_date: dates.startDate || "2024-08-13", // example date, update with actual
+      sorting_column: "price", // update with actual column
+      sorting_order: "asc", // update with actual order
+    };
+    fetchProductsApiCall(postData);
   };
 
   const handleApplyConditions = (metricConditions, attributeConditions) => {
@@ -94,8 +141,8 @@ const ProductAnalyticsPage = () => {
     const postData = {
       metrics_filter: prepareConditions(metricConditions), // assuming these are the conditions
       attribute_filter: prepareConditions(attributeConditions), // modify according to your needs
-      from_date: "2024-08-13", // example date, update with actual
-      to_date: "2024-07-13", // example date, update with actual
+      from_date: dates.endDate || "2024-07-13", // example date, update with actual
+      to_date: dates.startDate || "2024-08-13", // example date, update with actual
       sorting_column: "price", // update with actual column
       sorting_order: "asc", // update with actual order
     };
@@ -122,7 +169,7 @@ const ProductAnalyticsPage = () => {
           onFilterChange={(event) => setFilterText(event.target.value)}
           onDownload={handleDownload}
           onApplyConditions={handleApplyConditions} // pass the handler
-          handleClickOpenFunction={() => {
+          handleClickOpenFunction={(data) => {
             const postData = {
               metrics_filter: appliedMetricConditions.map((item, index) => {
                 if (index === 0) {
@@ -131,25 +178,38 @@ const ProductAnalyticsPage = () => {
                   return newCondition;
                 } else {
                   let newCondition = { ...item };
-                  newCondition.conjunction = newCondition.conjunction.toLowerCase();
+                  newCondition.conjunction =
+                    newCondition.conjunction.toLowerCase();
                   return newCondition;
                 }
               }),
-              attribute_filter: appliedAttributeConditions.map((item, index) => {
-                if (index === 0) {
-                  let newCondition = { ...item };
-                  delete newCondition.conjunction;
-                  return newCondition;
-                } else {
-                  let newCondition = { ...item };
-                  newCondition.conjunction = newCondition.conjunction.toLowerCase();
-                  return newCondition;
+              attribute_filter: appliedAttributeConditions.map(
+                (item, index) => {
+                  if (index === 0) {
+                    let newCondition = { ...item };
+                    delete newCondition.conjunction;
+                    return newCondition;
+                  } else {
+                    let newCondition = { ...item };
+                    newCondition.conjunction =
+                      newCondition.conjunction.toLowerCase();
+                    return newCondition;
+                  }
                 }
-              }),
+              ),
               from_date: "2024-08-13", // example date, update with actual
               to_date: "2024-07-13", // example date, update with actual
             };
-            createProductSetCall(postData);
+            if (data === "productSet") {
+              createProductSetCall(postData);
+            }
+          }}
+          onDateRangeChange={(e) => {
+            console.log(e.target.value, "skjffjlsjl");
+            const { count, type } = JSON.parse(e.target.value);
+            const startDate = moment().format("YYYY-MM-DD");
+            const endDate = moment().subtract(count, type).format("YYYY-MM-DD");
+            setDates({ startDate, endDate });
           }}
         />
         {/* Display applied conditions as chips */}
@@ -168,7 +228,18 @@ const ProductAnalyticsPage = () => {
             )
           )}
         </Stack>
-        <AnalyticsTable productsData={productsData} />
+        {loading ? (
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            height="300px"
+          >
+            <CircularProgress />
+          </Box>
+        ) : (
+          <AnalyticsTable productsData={productsData} />
+        )}
       </div>
     </Layout>
   );
