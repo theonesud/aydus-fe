@@ -11,12 +11,16 @@ import ApplyRule from "@/components/ApplyRuleModal";
 import StopLossFilterComponent from "@/components/StopLossFilterComponent";
 import { createStopLoss, fetchStopLossData } from "@/utils/api";
 import moment from "moment";
+import { Bounce, toast } from "react-toastify";
 
 const AddRule = () => {
   const [filterText, setFilterText] = useState("");
   const [productsData, setProductsData] = useState([]);
   // console.log(productsData, "productsData");
-  const [appliedConditions, setAppliedConditions] = useState([]); // State to hold applied conditions
+  const [appliedConditions, setAppliedConditions] = useState({
+    inclusionDetails: [],
+    exclusionDetails: [],
+  }); // State to hold applied conditions
   const [applyRuleOpen, setApplyRuleOpen] = useState(false);
   const [dates, setDates] = useState({
     startDate: null,
@@ -36,27 +40,27 @@ const AddRule = () => {
 
   // Fetch and parse CSV on mount
   useEffect(() => {
-    fetchProductsApiCall(); // Call the API on mount
-  }, []);
+    handleApplyConditions(); // Call the API on mount
+  }, [dates]);
 
-  const fetchProductsApiCall = async (inputData = {}) => {
-    try {
-      // Call the API
-      await fetchStopLossData(
-        inputData,
-        (response) => {
-          console.log("API Response:", response.data); // Log the response
-          // Optionally update productsData with the API response
-          setProductsData(response.data.data || []);
-        },
-        (error) => {
-          console.error("API Error:", error);
-        }
-      );
-    } catch (error) {
-      console.error("Failed to call API:", error);
-    }
-  };
+  // const fetchProductsApiCall = async (inputData = {}) => {
+  //   try {
+  //     // Call the API
+  //     await fetchStopLossData(
+  //       inputData,
+  //       (response) => {
+  //         console.log("API Response:", response.data); // Log the response
+  //         // Optionally update productsData with the API response
+  //         setProductsData(response.data.data || []);
+  //       },
+  //       (error) => {
+  //         console.error("API Error:", error);
+  //       }
+  //     );
+  //   } catch (error) {
+  //     console.error("Failed to call API:", error);
+  //   }
+  // };
 
   const handleDownload = () => {
     const filteredData = productsData.filter(
@@ -72,8 +76,13 @@ const AddRule = () => {
   };
 
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleApplyConditions = (metricConditions, attributeConditions) => {
+  const handleApplyConditions = (
+    metricConditions = null,
+    attributeConditions = null
+  ) => {
+    setLoading(true);
     const prepareConditions = (conditions) => {
       return conditions.map((item, index) => {
         if (index === 0) {
@@ -88,19 +97,39 @@ const AddRule = () => {
       });
     };
 
+    const conditions = {
+      inclusionDetails: [],
+      exclusionDetails: [],
+    };
+    if (metricConditions?.inclusionDetails) {
+      conditions.inclusionDetails.push(metricConditions.inclusionDetails);
+    }
+    if (attributeConditions?.inclusionDetails) {
+      conditions.inclusionDetails.push(attributeConditions.inclusionDetails);
+    }
+    if (metricConditions?.exclusionDetails) {
+      conditions.exclusionDetails.push(metricConditions.exclusionDetails);
+    }
+    if (attributeConditions?.exclusionDetails) {
+      conditions.exclusionDetails.push(metricConditions.exclusionDetails);
+    }
     // Define your post data structure
     const postData = {
       inclusion_details: {
-        metrics_filter: prepareConditions(metricConditions.inclusionDetails),
-        attribute_filter: prepareConditions(
-          attributeConditions.inclusionDetails
-        ),
+        metrics_filter: metricConditions?.inclusionDetails
+          ? prepareConditions(metricConditions.inclusionDetails)
+          : [],
+        attribute_filter: attributeConditions?.inclusionDetails
+          ? prepareConditions(attributeConditions.inclusionDetails)
+          : [],
       },
       exclusion_details: {
-        metrics_filter: prepareConditions(metricConditions.exclusionDetails),
-        attribute_filter: prepareConditions(
-          attributeConditions.exclusionDetails
-        ),
+        metrics_filter: metricConditions?.exclusionDetails
+          ? prepareConditions(metricConditions.exclusionDetails)
+          : [],
+        attribute_filter: attributeConditions?.exclusionDetails
+          ? prepareConditions(attributeConditions.exclusionDetails)
+          : [],
       },
       from_date: dates.endDate || "2024-07-13", // example date, update with actual
       to_date: dates.startDate || "2024-08-13", // example date, update with actual
@@ -118,8 +147,10 @@ const AddRule = () => {
         console.log("API Response:", response.data); // Log the response
         // Optionally update productsData with the API response
         setProductsData(response.data.data || []);
+        setLoading(false);
       },
       (error) => {
+        setLoading(false);
         console.error("API Error:", error);
       }
     );
@@ -135,6 +166,11 @@ const AddRule = () => {
   };
 
   const handleApply = (ruleData) => {
+    // setLoading(true)
+    if (!ruleData.rule_name) {
+      toast.warn("Please enter a rule name");
+      return;
+    }
     const inputData = {
       inclusion_details: filtersData.inclusion_details,
       exclusion_details: filtersData.exclusion_details,
@@ -152,10 +188,13 @@ const AddRule = () => {
       inputData,
       () => {
         setApplyRuleOpen(false);
-        alert("stop loss created successfully");
+        // alert("stop loss created successfully");
+        toast.success("Stop Loss created successfully");
       },
-      () => {
-        alert("failed to create stop loss");
+      (err) => {
+        console.log(err, "jfdsljfldsf");
+        // alert("failed to create stop loss");
+        toast.error("Failed to create stop loss");
       }
     );
   };
@@ -184,7 +223,11 @@ const AddRule = () => {
           />
           {/* Display applied conditions as chips */}
           <Stack direction="row" spacing={1} sx={{ mb: 2, mt: 4 }}>
-            {appliedConditions.map((condition, index) => (
+            {/* <div>Inclusion Details Filters</div> */}
+            {[
+              ...appliedConditions.inclusionDetails,
+              ...appliedConditions.exclusionDetails,
+            ].map((condition, index) => (
               <Chip
                 key={index}
                 label={`${condition.field} ${condition.operator} ${condition.value}`}
@@ -196,7 +239,25 @@ const AddRule = () => {
               />
             ))}
           </Stack>
-          <AnalyticsTable productsData={productsData} />
+          {/* <Stack direction="row" spacing={1} sx={{ mb: 2, mt: 4 }}>
+            <div>Exclusion Details </div>
+            {appliedConditions.exclusionDetails.map((condition, index) => (
+              <Chip
+                key={index}
+                label={`${condition.field} ${condition.operator} ${condition.value}`}
+                color="primary"
+                variant="outlined"
+                sx={{
+                  fontSize: 14,
+                }}
+              />
+            ))}
+          </Stack> */}
+          {loading ? (
+            <div>Loading...</div>
+          ) : (
+            <AnalyticsTable productsData={productsData} />
+          )}
           {/* <AddStopLossRuleModal open={open} setOpen={setOpen} /> */}
           <ApplyRule
             open={applyRuleOpen}
