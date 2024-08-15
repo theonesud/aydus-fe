@@ -25,16 +25,26 @@ const ProductAnalyticsPage = () => {
 
   const handleDeleteMetricCondition = (indexToDelete) => {
     setAppliedMetricConditions((conditions) => {
-      const updatedConditions = conditions.filter((_, index) => index !== indexToDelete);
-      fetchProductsApiCallWithConditions(updatedConditions, appliedAttributeConditions); // Call API after deletion
+      const updatedConditions = conditions.filter(
+        (_, index) => index !== indexToDelete
+      );
+      fetchProductsApiCallWithConditions(
+        updatedConditions,
+        appliedAttributeConditions
+      ); // Call API after deletion
       return updatedConditions;
     });
   };
 
   const handleDeleteAttributeCondition = (indexToDelete) => {
     setAppliedAttributeConditions((conditions) => {
-      const updatedConditions = conditions.filter((_, index) => index !== indexToDelete);
-      fetchProductsApiCallWithConditions(appliedMetricConditions, updatedConditions); // Call API after deletion
+      const updatedConditions = conditions.filter(
+        (_, index) => index !== indexToDelete
+      );
+      fetchProductsApiCallWithConditions(
+        appliedMetricConditions,
+        updatedConditions
+      ); // Call API after deletion
       return updatedConditions;
     });
   };
@@ -69,7 +79,10 @@ const ProductAnalyticsPage = () => {
     }
   };
 
-  const fetchProductsApiCallWithConditions = (metricConditions, attributeConditions) => {
+  const fetchProductsApiCallWithConditions = (
+    metricConditions,
+    attributeConditions
+  ) => {
     const prepareConditions = (conditions) => {
       return conditions.map((item, index) => {
         if (index === 0) {
@@ -127,7 +140,10 @@ const ProductAnalyticsPage = () => {
   };
 
   const handleDateRangeChange = () => {
-    fetchProductsApiCallWithConditions(appliedMetricConditions, appliedAttributeConditions);
+    fetchProductsApiCallWithConditions(
+      appliedMetricConditions,
+      appliedAttributeConditions
+    );
   };
 
   const handleApplyConditions = (metricConditions, attributeConditions) => {
@@ -198,6 +214,7 @@ const ProductAnalyticsPage = () => {
             const endDate = moment().subtract(count, type).format("YYYY-MM-DD");
             setDates({ startDate, endDate });
           }}
+          setDates={setDates}
         />
         <Stack direction="row" spacing={1} sx={{ mb: 2, mt: 4 }}>
           {appliedMetricConditions.map((condition, index) => (

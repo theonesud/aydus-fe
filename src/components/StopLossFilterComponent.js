@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -19,6 +19,9 @@ import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { DesktopDatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
+import moment from "moment";
 
 const StopLossFilterComponent = ({
   onFilterChange,
@@ -29,6 +32,7 @@ const StopLossFilterComponent = ({
   handleOpen,
   onApplyClick,
   handleClickOpenFunction,
+  setDates,
 }) => {
   const [dateRange, setDateRange] = useState(null);
   console.log(dateRange, "skdlkfjl");
@@ -70,19 +74,47 @@ const StopLossFilterComponent = ({
     inclusionDetails: [],
   });
   console.log(selectedMetrics, selectedAttributes, "skfjdsljf");
-  const [newMetricsCondition, setNewMetricsCondition] = useState({
-    field: "",
-    operator: "",
-    value: "",
-    conjunction: "AND", // Default conjunction
-  });
-  const [newAttributesCondition, setNewAttributesCondition] = useState({
-    field: "",
-    operator: "",
-    value: "",
-    conjunction: "AND", // Default conjunction
-  });
+  const [newExclusionMetricsCondition, setNewExclusionMetricsCondition] =
+    useState({
+      field: "",
+      operator: "",
+      value: "",
+      conjunction: "AND", // Default conjunction
+    });
+  const [newExclusionAttributesCondition, setNewExclusionAttributesCondition] =
+    useState({
+      field: "",
+      operator: "",
+      value: "",
+      conjunction: "AND", // Default conjunction
+    });
+  const [newInclusionMetricsCondition, setNewInclusionMetricsCondition] =
+    useState({
+      field: "",
+      operator: "",
+      value: "",
+      conjunction: "AND", // Default conjunction
+    });
+  const [newInclusionAttributesCondition, setNewInclusionAttributesCondition] =
+    useState({
+      field: "",
+      operator: "",
+      value: "",
+      conjunction: "AND", // Default conjunction
+    });
   const [editingIndex, setEditingIndex] = useState(null);
+
+  const [datesObj, setDatesObj] = useState({
+    startDate: null,
+    endDate: null,
+  });
+
+  useEffect(() => {
+    const { startDate, endDate } = datesObj;
+    if (startDate && endDate) {
+      setDates(datesObj);
+    }
+  }, [datesObj]);
 
   // new state
   // const [dateRange, setDateRange] = useState({startDate: null, endDate: null});
@@ -142,16 +174,29 @@ const StopLossFilterComponent = ({
   // };
 
   const addMetricsCondition = (type) => {
-    setMetricsConditions({
-      ...metricsConditions,
-      [type]: [...metricsConditions[type], newMetricsCondition],
-    });
-    setNewMetricsCondition({
-      field: "",
-      operator: "",
-      value: "",
-      conjunction: "AND",
-    }); // Reset with default conjunction
+    if (type === "exclusionDetails") {
+      setMetricsConditions({
+        ...metricsConditions,
+        [type]: [...metricsConditions[type], newExclusionMetricsCondition],
+      });
+      setNewExclusionMetricsCondition({
+        field: "",
+        operator: "",
+        value: "",
+        conjunction: "AND",
+      }); // Reset with default conjunction
+    } else {
+      setMetricsConditions({
+        ...metricsConditions,
+        [type]: [...metricsConditions[type], newInclusionMetricsCondition],
+      });
+      setNewInclusionMetricsCondition({
+        field: "",
+        operator: "",
+        value: "",
+        conjunction: "AND",
+      }); // Reset with default conjunction
+    }
   };
 
   const deleteMetricsCondition = (index, type) => {
@@ -169,24 +214,46 @@ const StopLossFilterComponent = ({
       setMetricsConditions({ ...metricsConditions, [type]: updatedConditions });
     } else {
       // Updating new condition form
-      setNewMetricsCondition({
-        ...newMetricsCondition,
-        [prop]: event.target.value,
-      });
+      if (type === "exclusionDetails")
+        setNewExclusionMetricsCondition({
+          ...newExclusionMetricsCondition,
+          [prop]: event.target.value,
+        });
+      else {
+        setNewInclusionMetricsCondition({
+          ...newInclusionMetricsCondition,
+          [prop]: event.target.value,
+        });
+      }
     }
   };
 
   const addAttributesCondition = (type) => {
-    setAttributeConditions({
-      ...attributeConditions,
-      [type]: [...attributeConditions[type], newAttributesCondition],
-    });
-    setNewAttributesCondition({
-      field: "",
-      operator: "",
-      value: "",
-      conjunction: "AND",
-    }); // Reset with default conjunction
+    // addAttributesCondition("exclusionDetails")
+    if (type == "exclusionDetails") {
+      setNewExclusionAttributesCondition({
+        field: "",
+        operator: "",
+        value: "",
+        conjunction: "AND",
+      });
+      setAttributeConditions({
+        ...attributeConditions,
+        [type]: [...attributeConditions[type], newExclusionAttributesCondition],
+      });
+    } // Reset with default conjunction
+    else {
+      setNewInclusionAttributesCondition({
+        field: "",
+        operator: "",
+        value: "",
+        conjunction: "AND",
+      });
+      setAttributeConditions({
+        ...attributeConditions,
+        [type]: [...attributeConditions[type], newInclusionAttributesCondition],
+      });
+    }
   };
 
   const deleteAttributesCondition = (index, type) => {
@@ -197,6 +264,7 @@ const StopLossFilterComponent = ({
   };
 
   const handleAttributesChange = (prop, index, type) => (event) => {
+    console.log(prop, index, type, event, "sljfldjkf");
     if (index !== undefined) {
       // Editing existing condition
       const updatedConditions = [...attributeConditions[type]];
@@ -207,10 +275,17 @@ const StopLossFilterComponent = ({
       });
     } else {
       // Updating new condition form
-      setNewAttributesCondition({
-        ...newAttributesCondition,
-        [prop]: event.target.value,
-      });
+      if (type == "exclusionDetails")
+        setNewExclusionAttributesCondition({
+          ...newExclusionAttributesCondition,
+          [prop]: event.target.value,
+        });
+      else {
+        setNewInclusionAttributesCondition({
+          ...newInclusionAttributesCondition,
+          [prop]: event.target.value,
+        });
+      }
     }
   };
 
@@ -222,7 +297,62 @@ const StopLossFilterComponent = ({
     setEditingIndex(null);
   };
   const handleApply = () => {
-    onApplyConditions(metricsConditions, attributeConditions); // send conditions to parent
+    let metricsConditionsUpdated = {
+      exclusionDetails: [...metricsConditions.exclusionDetails],
+      inclusionDetails: [...metricsConditions.inclusionDetails],
+    };
+
+    if (
+      newExclusionMetricsCondition?.field &&
+      newExclusionMetricsCondition?.operator &&
+      newExclusionMetricsCondition?.conjunction &&
+      newExclusionMetricsCondition?.value
+    ) {
+      metricsConditionsUpdated.exclusionDetails.push(
+        newExclusionMetricsCondition
+      );
+    }
+    if (
+      newInclusionMetricsCondition?.field &&
+      newInclusionMetricsCondition?.operator &&
+      newInclusionMetricsCondition?.conjunction &&
+      newInclusionMetricsCondition?.value
+    ) {
+      metricsConditionsUpdated.inclusionDetails.push(
+        newInclusionMetricsCondition
+      );
+    }
+
+    const attributeConditionsUpdated = {
+      exclusionDetails: [...attributeConditions.exclusionDetails],
+      inclusionDetails: [...attributeConditions.inclusionDetails],
+    };
+    if (
+      newExclusionAttributesCondition?.field &&
+      newExclusionAttributesCondition?.operator &&
+      newExclusionAttributesCondition?.conjunction &&
+      newExclusionAttributesCondition?.value
+    ) {
+      metricsConditionsUpdated.exclusionDetails.push(
+        newExclusionAttributesCondition
+      );
+    }
+    if (
+      newInclusionAttributesCondition?.field &&
+      newInclusionAttributesCondition?.operator &&
+      newInclusionAttributesCondition?.conjunction &&
+      newInclusionAttributesCondition?.value
+    ) {
+      metricsConditionsUpdated.inclusionDetails.push(
+        newInclusionAttributesCondition
+      );
+    }
+    console.log(
+      metricsConditionsUpdated,
+      attributeConditionsUpdated,
+      "sljfdljfsd"
+    );
+    onApplyConditions(metricsConditionsUpdated, attributeConditionsUpdated);
     handleClose();
   };
   const commonTypographyStyles = {
@@ -358,8 +488,10 @@ const StopLossFilterComponent = ({
           value={dateRange}
           label="Date Range"
           onChange={(e) => {
-            onDateRangeChange(e);
             setDateRange(e.target.value);
+            if (JSON.parse(e.target.value).type !== "custom") {
+              onDateRangeChange(e);
+            }
           }}
           sx={{
             backgroundColor: "white",
@@ -381,8 +513,37 @@ const StopLossFilterComponent = ({
           <MenuItem value={JSON.stringify({ count: 1, type: "year" })}>
             Last Year
           </MenuItem>
+          <MenuItem value={JSON.stringify({ count: 1, type: "custom" })}>
+            Custom
+          </MenuItem>
         </Select>
       </FormControl>
+      {JSON.parse(dateRange)?.type == "custom" && (
+        <LocalizationProvider dateAdapter={AdapterMoment}>
+          <DesktopDatePicker
+            label="Start Date"
+            value={datesObj.startDate ? moment(datesObj.startDate) : null}
+            onChange={(e) => {
+              setDatesObj({
+                startDate: moment(e).format("YYYY-MM-DD"),
+                endDate: null,
+              });
+            }}
+            renderInput={(params) => <TextField {...params} />}
+          />
+          <DesktopDatePicker
+            label="End Date"
+            value={datesObj.endDate ? moment(datesObj.endDate) : null}
+            onChange={(e) => {
+              setDatesObj({
+                ...datesObj,
+                endDate: moment(e).format("YYYY-MM-DD"),
+              });
+            }}
+            renderInput={(params) => <TextField {...params} />}
+          />
+        </LocalizationProvider>
+      )}
       {onApplyClick && (
         <button
           onClick={onApplyClick}
@@ -623,9 +784,13 @@ const StopLossFilterComponent = ({
                             <FormControl fullWidth>
                               <InputLabel>Select Conjunction</InputLabel>
                               <Select
-                                value={newMetricsCondition.conjunction}
+                                value={newExclusionMetricsCondition.conjunction}
                                 label="Select Conjunction"
-                                onChange={handleMetricsChange("conjunction")}
+                                onChange={handleMetricsChange(
+                                  "conjunction",
+                                  undefined,
+                                  "exclusionDetails"
+                                )}
                               >
                                 <MenuItem value="AND">AND</MenuItem>
                                 <MenuItem value="OR">OR</MenuItem>
@@ -636,9 +801,13 @@ const StopLossFilterComponent = ({
                           <FormControl fullWidth>
                             <InputLabel>Select Field</InputLabel>
                             <Select
-                              value={newMetricsCondition.field}
+                              value={newExclusionMetricsCondition.field}
                               label="Select Field"
-                              onChange={handleMetricsChange("field")}
+                              onChange={handleMetricsChange(
+                                "field",
+                                undefined,
+                                "exclusionDetails"
+                              )}
                             >
                               {fieldOptions.map((option) => (
                                 <MenuItem key={option} value={option}>
@@ -650,9 +819,13 @@ const StopLossFilterComponent = ({
                           <FormControl fullWidth>
                             <InputLabel>Select Operator</InputLabel>
                             <Select
-                              value={newMetricsCondition.operator}
+                              value={newExclusionMetricsCondition.operator}
                               label="Select Operator"
-                              onChange={handleMetricsChange("operator")}
+                              onChange={handleMetricsChange(
+                                "operator",
+                                undefined,
+                                "exclusionDetails"
+                              )}
                             >
                               {operators.map((option) => (
                                 <MenuItem
@@ -667,8 +840,12 @@ const StopLossFilterComponent = ({
                           <TextField
                             fullWidth
                             label="Enter Value"
-                            value={newMetricsCondition.value}
-                            onChange={handleMetricsChange("value")}
+                            value={newExclusionMetricsCondition.value}
+                            onChange={handleMetricsChange(
+                              "value",
+                              undefined,
+                              "exclusionDetails"
+                            )}
                           />
                         </Box>
                         <div
@@ -933,7 +1110,9 @@ const StopLossFilterComponent = ({
                             <FormControl fullWidth>
                               <InputLabel>Select Conjunction</InputLabel>
                               <Select
-                                value={newAttributesCondition.conjunction}
+                                value={
+                                  newExclusionAttributesCondition.conjunction
+                                }
                                 label="Select Conjunction"
                                 onChange={handleMetricsChange("conjunction")}
                               >
@@ -945,9 +1124,13 @@ const StopLossFilterComponent = ({
                           <FormControl fullWidth>
                             <InputLabel>Select Field</InputLabel>
                             <Select
-                              value={newAttributesCondition.field}
+                              value={newExclusionAttributesCondition.field}
                               label="Select Field"
-                              onChange={handleAttributesChange("field")}
+                              onChange={handleAttributesChange(
+                                "field",
+                                undefined,
+                                "exclusionDetails"
+                              )}
                             >
                               {attributeFieldOptions.map((option) => (
                                 <MenuItem key={option} value={option}>
@@ -959,9 +1142,13 @@ const StopLossFilterComponent = ({
                           <FormControl fullWidth>
                             <InputLabel>Select Operator</InputLabel>
                             <Select
-                              value={newAttributesCondition.operator}
+                              value={newExclusionAttributesCondition.operator}
                               label="Select Operator"
-                              onChange={handleAttributesChange("operator")}
+                              onChange={handleAttributesChange(
+                                "operator",
+                                undefined,
+                                "exclusionDetails"
+                              )}
                             >
                               <MenuItem value="equals">Equals</MenuItem>
                               <MenuItem value="contains">Contains</MenuItem>
@@ -970,8 +1157,12 @@ const StopLossFilterComponent = ({
                           <TextField
                             fullWidth
                             label="Enter Value"
-                            value={newAttributesCondition.value}
-                            onChange={handleAttributesChange("value")}
+                            value={newExclusionAttributesCondition.value}
+                            onChange={handleAttributesChange(
+                              "value",
+                              undefined,
+                              "exclusionDetails"
+                            )}
                           />
                         </Box>
                         <div
@@ -1295,9 +1486,13 @@ const StopLossFilterComponent = ({
                             <FormControl fullWidth>
                               <InputLabel>Select Conjunction</InputLabel>
                               <Select
-                                value={newMetricsCondition.conjunction}
+                                value={newInclusionMetricsCondition.conjunction}
                                 label="Select Conjunction"
-                                onChange={handleMetricsChange("conjunction")}
+                                onChange={handleMetricsChange(
+                                  "conjunction",
+                                  undefined,
+                                  "inclusionDetails"
+                                )}
                               >
                                 <MenuItem value="AND">AND</MenuItem>
                                 <MenuItem value="OR">OR</MenuItem>
@@ -1308,9 +1503,13 @@ const StopLossFilterComponent = ({
                           <FormControl fullWidth>
                             <InputLabel>Select Field</InputLabel>
                             <Select
-                              value={newMetricsCondition.field}
+                              value={newInclusionMetricsCondition.field}
                               label="Select Field"
-                              onChange={handleMetricsChange("field")}
+                              onChange={handleMetricsChange(
+                                "field",
+                                undefined,
+                                "inclusionDetails"
+                              )}
                             >
                               {fieldOptions.map((option) => (
                                 <MenuItem key={option} value={option}>
@@ -1322,9 +1521,13 @@ const StopLossFilterComponent = ({
                           <FormControl fullWidth>
                             <InputLabel>Select Operator</InputLabel>
                             <Select
-                              value={newMetricsCondition.operator}
+                              value={newInclusionMetricsCondition.operator}
                               label="Select Operator"
-                              onChange={handleMetricsChange("operator")}
+                              onChange={handleMetricsChange(
+                                "operator",
+                                undefined,
+                                "inclusionDetails"
+                              )}
                             >
                               {operators.map((option) => (
                                 <MenuItem
@@ -1339,8 +1542,12 @@ const StopLossFilterComponent = ({
                           <TextField
                             fullWidth
                             label="Enter Value"
-                            value={newMetricsCondition.value}
-                            onChange={handleMetricsChange("value")}
+                            value={newInclusionMetricsCondition.value}
+                            onChange={handleMetricsChange(
+                              "value",
+                              undefined,
+                              "inclusionDetails"
+                            )}
                           />
                         </Box>
                         <div
@@ -1605,9 +1812,15 @@ const StopLossFilterComponent = ({
                             <FormControl fullWidth>
                               <InputLabel>Select Conjunction</InputLabel>
                               <Select
-                                value={newAttributesCondition.conjunction}
+                                value={
+                                  newInclusionAttributesCondition.conjunction
+                                }
                                 label="Select Conjunction"
-                                onChange={handleMetricsChange("conjunction")}
+                                onChange={handleAttributesChange(
+                                  "conjunction",
+                                  undefined,
+                                  "inclusionDetails"
+                                )}
                               >
                                 <MenuItem value="AND">AND</MenuItem>
                                 <MenuItem value="OR">OR</MenuItem>
@@ -1617,9 +1830,13 @@ const StopLossFilterComponent = ({
                           <FormControl fullWidth>
                             <InputLabel>Select Field</InputLabel>
                             <Select
-                              value={newAttributesCondition.field}
+                              value={newInclusionAttributesCondition.field}
                               label="Select Field"
-                              onChange={handleAttributesChange("field")}
+                              onChange={handleAttributesChange(
+                                "field",
+                                undefined,
+                                "inclusionDetails"
+                              )}
                             >
                               {attributeFieldOptions.map((option) => (
                                 <MenuItem key={option} value={option}>
@@ -1631,9 +1848,13 @@ const StopLossFilterComponent = ({
                           <FormControl fullWidth>
                             <InputLabel>Select Operator</InputLabel>
                             <Select
-                              value={newAttributesCondition.operator}
+                              value={newInclusionAttributesCondition.operator}
                               label="Select Operator"
-                              onChange={handleAttributesChange("operator")}
+                              onChange={handleAttributesChange(
+                                "operator",
+                                undefined,
+                                "inclusionDetails"
+                              )}
                             >
                               <MenuItem value="equals">Equals</MenuItem>
                               <MenuItem value="contains">Contains</MenuItem>
@@ -1642,8 +1863,12 @@ const StopLossFilterComponent = ({
                           <TextField
                             fullWidth
                             label="Enter Value"
-                            value={newAttributesCondition.value}
-                            onChange={handleAttributesChange("value")}
+                            value={newInclusionAttributesCondition.value}
+                            onChange={handleAttributesChange(
+                              "value",
+                              undefined,
+                              "inclusionDetails"
+                            )}
                           />
                         </Box>
                         <div
