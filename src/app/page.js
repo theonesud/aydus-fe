@@ -13,6 +13,8 @@ import { DateRangePicker } from "@mui/x-date-pickers-pro";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"; // Import the appropriate adapter
 import { getStopLoss, quadrantDataApi } from "@/utils/api"; // Adjust the path as needed
+import { useRouter } from "next/navigation";
+
 
 const Home = () => {
   const [xAxisMetric, setXAxisMetric] = useState("price");
@@ -24,6 +26,7 @@ const Home = () => {
   const [error, setError] = useState(null);
   const [stopLossData, setStopLossData] = useState([]);
   const [dateRange, setDateRange] = useState([null, null]);
+  const router = useRouter();
 
   const summaryData = {
     title: "Stop Loss",
@@ -347,6 +350,9 @@ const Home = () => {
                       border: "none",
                       padding: "5px 10px",
                       cursor: "pointer",
+                    }}
+                    onClick={() => {
+                      router.push("/productAnalytics");
                     }}
                   >
                     View Products
