@@ -10,11 +10,12 @@ import {
   Box,
 } from "@mui/material";
 import { DateRangePicker } from "@mui/x-date-pickers-pro";
-import { LocalizationProvider } from "@mui/x-date-pickers";
+import { DesktopDatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"; // Import the appropriate adapter
 import { getStopLoss, quadrantDataApi } from "@/utils/api"; // Adjust the path as needed
 import { useRouter } from "next/navigation";
-
+import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
+import moment from "moment";
 
 const Home = () => {
   const [xAxisMetric, setXAxisMetric] = useState("price");
@@ -25,7 +26,11 @@ const Home = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [stopLossData, setStopLossData] = useState([]);
-  const [dateRange, setDateRange] = useState([null, null]);
+  const [dateRange, setDateRange] = useState(null);
+  const [datesObj, setDatesObj] = useState({
+    startDate: null,
+    endDate: null,
+  });
   const router = useRouter();
 
   const summaryData = {
@@ -54,8 +59,8 @@ const Home = () => {
     setLoading(true);
     setError(null);
     const data = {
-      from_date: dateRange[0] ? dateRange[0].toISOString().split('T')[0] : "2024-01-01",
-      to_date: dateRange[1] ? dateRange[1].toISOString().split('T')[0] : "2024-12-31",
+      from_date: datesObj.startDate,
+      to_date: datesObj.endDate,
     };
     getStopLoss(
       data,
@@ -77,8 +82,8 @@ const Home = () => {
     setError(null);
 
     const postData = {
-      from_date: dateRange[0] ? dateRange[0].toISOString().split('T')[0] : "2022-01-01",
-      to_date: dateRange[1] ? dateRange[1].toISOString().split('T')[0] : "2022-12-31",
+      from_date: datesObj.startDate,
+      to_date: datesObj.endDate,
       x_col: xAxisMetric,
       x_val: xAxisValue,
       y_col: yAxisMetric,
@@ -122,14 +127,23 @@ const Home = () => {
   };
 
   useEffect(() => {
-    fetchQuadrantData();
-    fetchStopLoss();
-  }, [xAxisMetric, yAxisMetric, xAxisValue, yAxisValue, dateRange]);
+    if (datesObj?.startDate && datesObj?.endDate) {
+      fetchQuadrantData();
+      fetchStopLoss();
+    }
+  }, [xAxisMetric, yAxisMetric, xAxisValue, yAxisValue, dateRange, datesObj]);
+
+  const onDateRangeChange = (e) => {
+    const { count, type } = JSON.parse(e.target.value);
+    const startDate = moment().format("YYYY-MM-DD");
+    const endDate = moment().subtract(count, type).format("YYYY-MM-DD");
+    setDatesObj({ startDate, endDate });
+  };
 
   return (
     <Layout>
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <div className="border-b border-gray-200 pb-5 justify-between flex">
+      <LocalizationProvider dateAdapter={AdapterMoment}>
+        <div className="border-b border-gray-200 pb-5 justify-between flex items-center">
           <h3
             style={{
               fontSize: "24px",
@@ -140,8 +154,18 @@ const Home = () => {
           >
             Dashboard
           </h3>
-          <Box sx={{ width: 450, marginTop: 3 }}>
-            <DateRangePicker
+          <Box
+            sx={{
+              width: 450,
+              marginTop: 3,
+              flex: 1,
+              display: "flex",
+              justifyContent: "flex-end",
+              alignItems: "center",
+              gap: 5,
+            }}
+          >
+            {/* <DateRangePicker
               startText="Start Date"
               endText="End Date"
               value={dateRange}
@@ -154,12 +178,77 @@ const Home = () => {
                   <TextField {...endProps} />
                 </>
               )}
-            />
+            /> */}
+            <FormControl size="small" sx={{ minWidth: 130 }}>
+              <InputLabel id="date-range-label">Date Range</InputLabel>
+              <Select
+                labelId="date-range-label"
+                id="date-range-select"
+                value={dateRange}
+                label="Date Range"
+                onChange={(e) => {
+                  setDateRange(e.target.value);
+                  if (JSON.parse(e.target.value).type !== "custom") {
+                    onDateRangeChange(e);
+                  } else {
+                    setDatesObj({ startDate: null, endDate: null });
+                  }
+                }}
+                sx={{
+                  backgroundColor: "white",
+                  boxShadow: "10px 10px 100px 0px rgba(16, 28, 45, 0.08)",
+                }}
+              >
+                <MenuItem value={JSON.stringify({ count: 3, type: "days" })}>
+                  Last 3 Days
+                </MenuItem>
+                <MenuItem value={JSON.stringify({ count: 7, type: "days" })}>
+                  Last 7 Days
+                </MenuItem>
+                <MenuItem value={JSON.stringify({ count: 1, type: "months" })}>
+                  Last Month
+                </MenuItem>
+                <MenuItem value={JSON.stringify({ count: 6, type: "months" })}>
+                  Last 6 Months
+                </MenuItem>
+                <MenuItem value={JSON.stringify({ count: 1, type: "year" })}>
+                  Last Year
+                </MenuItem>
+                <MenuItem value={JSON.stringify({ count: 1, type: "custom" })}>
+                  Custom
+                </MenuItem>
+              </Select>
+            </FormControl>
+            {dateRange && JSON.parse(dateRange)?.type == "custom" && (
+              <>
+                <DesktopDatePicker
+                  label="Start Date"
+                  value={datesObj.startDate ? moment(datesObj.startDate) : null}
+                  onChange={(e) => {
+                    setDatesObj({
+                      startDate: moment(e).format("YYYY-MM-DD"),
+                      endDate: null,
+                    });
+                  }}
+                  renderInput={(params) => <TextField {...params} />}
+                />
+                <DesktopDatePicker
+                  label="End Date"
+                  value={datesObj.endDate ? moment(datesObj.endDate) : null}
+                  onChange={(e) => {
+                    setDatesObj({
+                      ...datesObj,
+                      endDate: moment(e).format("YYYY-MM-DD"),
+                    });
+                  }}
+                  renderInput={(params) => <TextField {...params} />}
+                />
+              </>
+            )}
           </Box>
         </div>
 
         {/* Date Range Picker Section */}
-
 
         {/* Dropdowns Section */}
         <div
@@ -340,7 +429,9 @@ const Home = () => {
                   textAlign: "left",
                 }}
               >
-                <div style={{display:'flex',justifyContent:'space-between'}}>
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
                   <h3 style={{ fontSize: "22px", fontWeight: "bold" }}>
                     {summaryData.title}
                   </h3>
