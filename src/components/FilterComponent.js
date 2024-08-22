@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -19,6 +19,14 @@ import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
+import {
+  DatePicker,
+  DesktopDatePicker,
+  LocalizationProvider,
+} from "@mui/x-date-pickers";
+import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
+import moment from "moment";
+import { setDate } from "date-fns";
 
 const FilterComponent = ({
   onFilterChange,
@@ -29,6 +37,7 @@ const FilterComponent = ({
   handleOpen,
   onApplyClick,
   handleClickOpenFunction,
+  setDates = () => {},
 }) => {
   const [dateRange, setDateRange] = useState(null);
   const [open, setOpen] = useState(false);
@@ -50,6 +59,17 @@ const FilterComponent = ({
     conjunction: "AND", // Default conjunction
   });
   const [editingIndex, setEditingIndex] = useState(null);
+  const [datesObj, setDatesObj] = useState({
+    startDate: null,
+    endDate: null,
+  });
+
+  useEffect(() => {
+    const { startDate, endDate } = datesObj;
+    if (startDate && endDate) {
+      setDates(datesObj);
+    }
+  }, [datesObj]);
 
   const handleClickOpen = () => {
     handleClickOpenFunction("filters");
@@ -143,7 +163,28 @@ const FilterComponent = ({
   };
 
   const handleApply = () => {
-    onApplyConditions(metricConditions, attributeConditions); // Send separate conditions to parent
+    let metricConditionsUpdated = [...metricConditions];
+    if (
+      newMetricCondition?.field &&
+      newMetricCondition?.operator &&
+      newMetricCondition?.conjunction &&
+      newMetricCondition?.value
+    ) {
+      metricConditionsUpdated = [...metricConditions, newMetricCondition];
+    }
+    let attributeConditionsUpdated = [...attributeConditions];
+    if (
+      newAttributeCondition?.field &&
+      newAttributeCondition?.operator &&
+      newAttributeCondition?.conjunction &&
+      newAttributeCondition?.value
+    ) {
+      attributeConditionsUpdated = [
+        ...attributeConditions,
+        newAttributeCondition,
+      ];
+    }
+    onApplyConditions(metricConditionsUpdated, attributeConditionsUpdated); // Send separate conditions to parent
     handleClose();
   };
 
@@ -284,8 +325,10 @@ const FilterComponent = ({
           value={dateRange}
           label="Date Range"
           onChange={(e) => {
-            onDateRangeChange(e);
             setDateRange(e.target.value);
+            if (JSON.parse(e.target.value).type !== "custom") {
+              onDateRangeChange(e);
+            }
           }}
           sx={{
             backgroundColor: "white",
@@ -307,8 +350,37 @@ const FilterComponent = ({
           <MenuItem value={JSON.stringify({ count: 1, type: "year" })}>
             Last Year
           </MenuItem>
+          <MenuItem value={JSON.stringify({ count: 1, type: "custom" })}>
+            Custom
+          </MenuItem>
         </Select>
       </FormControl>
+      {JSON.parse(dateRange)?.type == "custom" && (
+        <LocalizationProvider dateAdapter={AdapterMoment}>
+          <DesktopDatePicker
+            label="Start Date"
+            value={datesObj.startDate ? moment(datesObj.startDate) : null}
+            onChange={(e) => {
+              setDatesObj({
+                startDate: moment(e).format("YYYY-MM-DD"),
+                endDate: null,
+              });
+            }}
+            renderInput={(params) => <TextField {...params} />}
+          />
+          <DesktopDatePicker
+            label="End Date"
+            value={datesObj.endDate ? moment(datesObj.endDate) : null}
+            onChange={(e) => {
+              setDatesObj({
+                ...datesObj,
+                endDate: moment(e).format("YYYY-MM-DD"),
+              });
+            }}
+            renderInput={(params) => <TextField {...params} />}
+          />
+        </LocalizationProvider>
+      )}
       {onApplyClick && (
         <button
           onClick={onApplyClick}

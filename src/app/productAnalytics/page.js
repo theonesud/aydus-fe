@@ -23,7 +23,32 @@ const ProductAnalyticsPage = () => {
     endDate: null,
   });
 
-  // Fetch and parse CSV on mount
+  const handleDeleteMetricCondition = (indexToDelete) => {
+    setAppliedMetricConditions((conditions) => {
+      const updatedConditions = conditions.filter(
+        (_, index) => index !== indexToDelete
+      );
+      fetchProductsApiCallWithConditions(
+        updatedConditions,
+        appliedAttributeConditions
+      ); // Call API after deletion
+      return updatedConditions;
+    });
+  };
+
+  const handleDeleteAttributeCondition = (indexToDelete) => {
+    setAppliedAttributeConditions((conditions) => {
+      const updatedConditions = conditions.filter(
+        (_, index) => index !== indexToDelete
+      );
+      fetchProductsApiCallWithConditions(
+        appliedMetricConditions,
+        updatedConditions
+      ); // Call API after deletion
+      return updatedConditions;
+    });
+  };
+
   useEffect(() => {
     fetchProductsApiCall(); // Call the API on mount
   }, []);
@@ -37,12 +62,9 @@ const ProductAnalyticsPage = () => {
   const fetchProductsApiCall = async (inputData = {}) => {
     setLoading(true); // Start loading
     try {
-      // Call the API
       await productApi(
         inputData,
         (response) => {
-          console.log("API Response:", response.data); // Log the response
-          // Optionally update productsData with the API response
           setProductsData(response.data.data || []);
           setLoading(false); // Stop loading
         },
@@ -57,14 +79,41 @@ const ProductAnalyticsPage = () => {
     }
   };
 
+  const fetchProductsApiCallWithConditions = (
+    metricConditions,
+    attributeConditions
+  ) => {
+    const prepareConditions = (conditions) => {
+      return conditions.map((item, index) => {
+        if (index === 0) {
+          let newCondition = { ...item };
+          delete newCondition.conjunction;
+          return newCondition;
+        } else {
+          let newCondition = { ...item };
+          newCondition.conjunction = newCondition.conjunction.toLowerCase();
+          return newCondition;
+        }
+      });
+    };
+
+    const postData = {
+      metrics_filter: prepareConditions(metricConditions),
+      attribute_filter: prepareConditions(attributeConditions),
+      from_date: dates.endDate || "2024-07-13",
+      to_date: dates.startDate || "2024-08-13",
+      sorting_column: "price",
+      sorting_order: "asc",
+    };
+
+    fetchProductsApiCall(postData);
+  };
+
   const createProductSetCall = async (inputData = {}) => {
     try {
-      // Call the API
       await creatProductSetApi(
         inputData,
         (response) => {
-          console.log("API Response:", response.data); // Log the response
-          // Optionally update productsData with the API response
           toast.success("Product set created successfully");
         },
         (error) => {
@@ -91,62 +140,17 @@ const ProductAnalyticsPage = () => {
   };
 
   const handleDateRangeChange = () => {
-    const prepareConditions = (conditions) => {
-      return conditions.map((item, index) => {
-        if (index === 0) {
-          let newCondition = { ...item };
-          delete newCondition.conjunction;
-          return newCondition;
-        } else {
-          let newCondition = { ...item };
-          newCondition.conjunction = newCondition.conjunction.toLowerCase();
-          return newCondition;
-        }
-      });
-    };
-
-    // Define your post data structure
-    const postData = {
-      metrics_filter: prepareConditions(appliedMetricConditions), // assuming these are the conditions
-      attribute_filter: prepareConditions(appliedAttributeConditions), // modify according to your needs
-      from_date: dates.endDate || "2024-07-13", // example date, update with actual
-      to_date: dates.startDate || "2024-08-13", // example date, update with actual
-      sorting_column: "price", // update with actual column
-      sorting_order: "asc", // update with actual order
-    };
-    fetchProductsApiCall(postData);
+    fetchProductsApiCallWithConditions(
+      appliedMetricConditions,
+      appliedAttributeConditions
+    );
   };
 
   const handleApplyConditions = (metricConditions, attributeConditions) => {
-    console.log("Metric Conditions:", metricConditions);
-    console.log("Attribute Conditions:", attributeConditions);
     setAppliedMetricConditions(metricConditions);
     setAppliedAttributeConditions(attributeConditions);
 
-    const prepareConditions = (conditions) => {
-      return conditions.map((item, index) => {
-        if (index === 0) {
-          let newCondition = { ...item };
-          delete newCondition.conjunction;
-          return newCondition;
-        } else {
-          let newCondition = { ...item };
-          newCondition.conjunction = newCondition.conjunction.toLowerCase();
-          return newCondition;
-        }
-      });
-    };
-
-    // Define your post data structure
-    const postData = {
-      metrics_filter: prepareConditions(metricConditions), // assuming these are the conditions
-      attribute_filter: prepareConditions(attributeConditions), // modify according to your needs
-      from_date: dates.endDate || "2024-07-13", // example date, update with actual
-      to_date: dates.startDate || "2024-08-13", // example date, update with actual
-      sorting_column: "price", // update with actual column
-      sorting_order: "asc", // update with actual order
-    };
-    fetchProductsApiCall(postData);
+    fetchProductsApiCallWithConditions(metricConditions, attributeConditions);
   };
 
   return (
@@ -168,7 +172,7 @@ const ProductAnalyticsPage = () => {
         <FilterComponent
           onFilterChange={(event) => setFilterText(event.target.value)}
           onDownload={handleDownload}
-          onApplyConditions={handleApplyConditions} // pass the handler
+          onApplyConditions={handleApplyConditions}
           handleClickOpenFunction={(data) => {
             const postData = {
               metrics_filter: appliedMetricConditions.map((item, index) => {
@@ -197,36 +201,46 @@ const ProductAnalyticsPage = () => {
                   }
                 }
               ),
-              from_date: "2024-08-13", // example date, update with actual
-              to_date: "2024-07-13", // example date, update with actual
+              from_date: "2024-08-13",
+              to_date: "2024-07-13",
             };
             if (data === "productSet") {
               createProductSetCall(postData);
             }
           }}
           onDateRangeChange={(e) => {
-            console.log(e.target.value, "skjffjlsjl");
             const { count, type } = JSON.parse(e.target.value);
             const startDate = moment().format("YYYY-MM-DD");
             const endDate = moment().subtract(count, type).format("YYYY-MM-DD");
             setDates({ startDate, endDate });
           }}
+          setDates={setDates}
         />
-        {/* Display applied conditions as chips */}
         <Stack direction="row" spacing={1} sx={{ mb: 2, mt: 4 }}>
-          {[...appliedMetricConditions, ...appliedAttributeConditions].map(
-            (condition, index) => (
-              <Chip
-                key={index}
-                label={`${condition.field} ${condition.operator} ${condition.value}`}
-                color="primary"
-                variant="outlined"
-                sx={{
-                  fontSize: 14,
-                }}
-              />
-            )
-          )}
+          {appliedMetricConditions.map((condition, index) => (
+            <Chip
+              key={index}
+              label={`${condition.field} ${condition.operator} ${condition.value}`}
+              color="primary"
+              variant="outlined"
+              onDelete={() => handleDeleteMetricCondition(index)}
+              sx={{
+                fontSize: 14,
+              }}
+            />
+          ))}
+          {appliedAttributeConditions.map((condition, index) => (
+            <Chip
+              key={index}
+              label={`${condition.field} ${condition.operator} ${condition.value}`}
+              color="primary"
+              variant="outlined"
+              onDelete={() => handleDeleteAttributeCondition(index)}
+              sx={{
+                fontSize: 14,
+              }}
+            />
+          ))}
         </Stack>
         {loading ? (
           <Box

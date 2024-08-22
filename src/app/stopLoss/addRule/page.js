@@ -21,6 +21,7 @@ const AddRule = () => {
     inclusionDetails: [],
     exclusionDetails: [],
   }); // State to hold applied conditions
+  console.log(appliedConditions, "appliedConditions");
   const [applyRuleOpen, setApplyRuleOpen] = useState(false);
   const [dates, setDates] = useState({
     startDate: null,
@@ -102,17 +103,34 @@ const AddRule = () => {
       exclusionDetails: [],
     };
     if (metricConditions?.inclusionDetails) {
-      conditions.inclusionDetails.push(metricConditions.inclusionDetails);
+      conditions.inclusionDetails = [
+        ...conditions.inclusionDetails,
+        ...metricConditions.inclusionDetails,
+      ];
+      // conditions.inclusionDetails.push(metricConditions.inclusionDetails);
     }
     if (attributeConditions?.inclusionDetails) {
-      conditions.inclusionDetails.push(attributeConditions.inclusionDetails);
+      conditions.inclusionDetails = [
+        ...conditions.inclusionDetails,
+        ...attributeConditions.inclusionDetails,
+      ];
+      // conditions.inclusionDetails.push(attributeConditions.inclusionDetails);
     }
     if (metricConditions?.exclusionDetails) {
-      conditions.exclusionDetails.push(metricConditions.exclusionDetails);
+      conditions.exclusionDetails = [
+        ...conditions.exclusionDetails,
+        ...metricConditions.exclusionDetails,
+      ];
+      // conditions.exclusionDetails.push(metricConditions.exclusionDetails);
     }
     if (attributeConditions?.exclusionDetails) {
-      conditions.exclusionDetails.push(metricConditions.exclusionDetails);
+      conditions.exclusionDetails = [
+        ...conditions.exclusionDetails,
+        ...attributeConditions.exclusionDetails,
+      ];
+      // conditions.exclusionDetails.push(metricConditions.exclusionDetails);
     }
+    console.log(conditions, metricConditions, attributeConditions, "sdkfjslf");
     // Define your post data structure
     const postData = {
       inclusion_details: {
@@ -148,6 +166,7 @@ const AddRule = () => {
         // Optionally update productsData with the API response
         setProductsData(response.data.data || []);
         setLoading(false);
+        setAppliedConditions(conditions);
       },
       (error) => {
         setLoading(false);
@@ -220,6 +239,7 @@ const AddRule = () => {
             handleOpen={() => setOpen(true)}
             onApplyClick={() => setApplyRuleOpen(true)}
             onDateRangeChange={onDateRangeChange}
+            setDates={setDates}
           />
           {/* Display applied conditions as chips */}
           <Stack direction="row" spacing={1} sx={{ mb: 2, mt: 4 }}>
